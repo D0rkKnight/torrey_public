@@ -13,7 +13,7 @@ namespace cu_utils
         Mirror
     };
 
-    struct Sphere
+    struct Shape
     {
         Vector3 center;
         Real radius;
@@ -44,7 +44,7 @@ namespace cu_utils
     struct Scene
     {
         AbstractCamera camera;
-        std::vector<Sphere> shapes;
+        std::vector<Shape> shapes;
         std::vector<Material> materials;
         std::vector<PointLight> lights;
 
@@ -52,11 +52,11 @@ namespace cu_utils
         Scene(hw1::Scene hw1Scene)
         {
             camera = AbstractCamera{hw1Scene.camera.lookfrom, hw1Scene.camera.lookat, hw1Scene.camera.up, hw1Scene.camera.vfov};
-            for (auto hw1Sphere : hw1Scene.shapes)
+            for (const auto hw1Sphere : hw1Scene.shapes)
             {
-                shapes.push_back(Sphere{hw1Sphere.center, hw1Sphere.radius, hw1Sphere.material_id});
+                shapes.push_back(Shape{hw1Sphere.center, hw1Sphere.radius, hw1Sphere.material_id});
             }
-            for (auto hw1Material : hw1Scene.materials)
+            for (const auto hw1Material : hw1Scene.materials)
             {
                 MaterialType type;
                 switch (hw1Material.type)
@@ -72,7 +72,7 @@ namespace cu_utils
                 }
                 materials.push_back(Material{type, hw1Material.color});
             }
-            for (auto hw1Light : hw1Scene.lights)
+            for (const auto hw1Light : hw1Scene.lights)
             {
                 lights.push_back(PointLight{hw1Light.intensity, hw1Light.position});
             }

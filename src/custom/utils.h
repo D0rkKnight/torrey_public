@@ -10,7 +10,7 @@ namespace cu_utils
 {
     const Real M_PI = 3.14159265358979323846;
 
-    RayHit hitSphere(const Sphere &sphere, const Ray &ray)
+    RayHit hitSphere(const Shape &sphere, const Ray &ray)
     {
         // Borrowed from RT in One Weekend
         Vector3 oc = ray.origin - sphere.center; // Vector from origin to center of sphere

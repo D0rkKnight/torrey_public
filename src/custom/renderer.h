@@ -189,11 +189,11 @@ namespace cu_utils
             return color;
         }
 
-        RayHit castRay(const Ray &ray, const std::vector<Sphere> &spheres)
+        RayHit castRay(const Ray &ray, const std::vector<Shape> &spheres)
         {
             // Run against every sphere
             RayHit bestHit = RayHit();
-            for (const Sphere &sphere : spheres)
+            for (const Shape &sphere : spheres)
             {
                 RayHit hit = cu_utils::hitSphere(sphere, ray);
                 if (hit.t < 0)

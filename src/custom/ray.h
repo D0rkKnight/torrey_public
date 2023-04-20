@@ -37,11 +37,11 @@ namespace cu_utils
     public:
         // Def constructor used for when nothing is hit
         RayHit() : hit(false), t(-1), sphere(nullptr), normal(Vector3{0, 0, 0}) {}
-        RayHit(bool hit, Real t, const Sphere *sphere, Vector3 normal) : hit(hit), t(t), sphere(sphere), normal(normal) {}
+        RayHit(bool hit, Real t, const Shape *sphere, Vector3 normal) : hit(hit), t(t), sphere(sphere), normal(normal) {}
 
         bool hit;
         Real t;
-        const Sphere *sphere;
+        const Shape *sphere;
         Vector3 normal;
     };
 }
