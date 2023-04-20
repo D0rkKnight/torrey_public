@@ -66,3 +66,10 @@ find_package(Threads REQUIRED)
 target_link_libraries(torrey Threads::Threads)
 
 target_link_libraries(torrey torrey_lib)
+
+# Nuke them warnings
+if(MSVC)
+    add_compile_options(/W0)
+elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+    add_compile_options(-w)
+endif()
