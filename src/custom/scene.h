@@ -52,5 +52,6 @@ namespace cu_utils
         std::vector<PointLight> lights;
 
         Scene();
+        static Scene defaultScene();
     };
 }
