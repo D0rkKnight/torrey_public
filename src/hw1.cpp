@@ -10,6 +10,110 @@
 using namespace std;
 using namespace hw1;
 
+// Util stuff that just has to be here
+cu_utils::Scene biScene2cuScene(const Scene &hw1Scene)
+{
+    cu_utils::Scene cuScene;
+
+    cuScene.camera = cu_utils::AbstractCamera{hw1Scene.camera.lookfrom, hw1Scene.camera.lookat, hw1Scene.camera.up, hw1Scene.camera.vfov};
+    for (const auto hw1Sphere : hw1Scene.shapes)
+    {
+        cuScene.shapes.push_back(cu_utils::Shape{hw1Sphere.center, hw1Sphere.radius, hw1Sphere.material_id});
+    }
+    for (const auto hw1Material : hw1Scene.materials)
+    {
+        cu_utils::MaterialType type;
+        switch (hw1Material.type)
+        {
+        case hw1::MaterialType::Diffuse:
+            type = cu_utils::MaterialType::Diffuse;
+            break;
+        case hw1::MaterialType::Mirror:
+            type = cu_utils::MaterialType::Mirror;
+            break;
+        default:
+            // Throw an error
+            new std::exception();
+            break;
+        }
+        cuScene.materials.push_back(cu_utils::Material{type, hw1Material.color});
+    }
+    for (const auto hw1Light : hw1Scene.lights)
+    {
+        cuScene.lights.push_back(cu_utils::PointLight{hw1Light.intensity, hw1Light.position});
+    }
+
+    return cuScene;
+}
+
+cu_utils::Scene getTestScene()
+{
+    // Create a default scene
+    hw1::Scene scene{
+
+        hw1::Camera{
+            Vector3{0, 0, 0},
+            Vector3{0, 0, -1},
+            Vector3{0, 1, 0},
+            90,
+        },
+        std::vector<hw1::Sphere>{
+            {Vector3{0.0, 0.0, -2.0}, 1.0, 0},
+        },
+        std::vector<hw1::Material>{
+            {hw1::MaterialType::Diffuse, Vector3{0.75, 0.25, 0.25}},
+        },
+        std::vector<hw1::PointLight>{
+            {Vector3{100, 100, 100}, Vector3{5, 5, -2}},
+        },
+    };
+
+    return biScene2cuScene(scene);
+}
+
+cu_utils::Scene getCustomScene()
+{
+    // Massive array of spheres
+    hw1::Scene scene{
+
+        hw1::Camera{
+            Vector3{0, 0, -1},
+            Vector3{0, 0, -2},
+            Vector3{0, 1, 0},
+            90,
+        },
+        std::vector<hw1::Sphere>{},
+        std::vector<hw1::Material>{
+            {hw1::MaterialType::Mirror, Vector3{0.75, 0.25, 0.25}},
+            {hw1::MaterialType::Mirror, Vector3{0.25, 0.75, 0.25}},
+            {hw1::MaterialType::Mirror, Vector3{0.25, 0.25, 0.75}},
+        },
+        std::vector<hw1::PointLight>{
+            {Vector3{100, 100, 100}, Vector3{0, 0, -3}},
+        },
+    };
+
+    // Create a bunch of spheres
+    for (int i = 0; i < 20; i += 2)
+    {
+        for (int j = 0; j < 20; j += 2)
+        {
+            for (int k = 0; k < 20; k += 2)
+            {
+                hw1::Sphere sphere{
+                    Vector3{(Real)i - 10, (Real)j - 10, (Real)k - 10},
+                    0.5,
+                    (i + j + k) % 3,
+                };
+
+                scene.shapes.push_back(sphere);
+            }
+        }
+    }
+
+    return biScene2cuScene(scene);
+}
+
 Image3 hw_1_1(const std::vector<std::string> & /*params*/)
 {
     // Homework 1.1: generate camera rays and output the ray directions
@@ -45,7 +149,7 @@ Image3 hw_1_2(const std::vector<std::string> & /*params*/)
 
     cu_utils::Renderer renderer(cu_utils::Mode::NORMAL);
 
-    renderer.render(img, renderer.getTestScene());
+    renderer.render(img, getTestScene());
 
     return img;
 }
@@ -107,7 +211,7 @@ Image3 hw_1_3(const std::vector<std::string> &params)
     // Render
     cu_utils::Renderer renderer(cu_utils::Mode::NORMAL);
 
-    cu_utils::Scene scene = renderer.getTestScene();
+    cu_utils::Scene scene = getTestScene();
     scene.camera.lookat = lookat;
     scene.camera.lookfrom = lookfrom;
     scene.camera.up = up;
@@ -132,7 +236,7 @@ Image3 hw_1_4(const std::vector<std::string> &params)
 
     Image3 img(640 /* width */, 480 /* height */);
     cu_utils::Renderer renderer(cu_utils::Mode::FLAT);
-    renderer.render(img, hw1_scenes[scene_id]);
+    renderer.render(img, biScene2cuScene(hw1_scenes[scene_id]));
 
     return img;
 }
@@ -153,7 +257,7 @@ Image3 hw_1_5(const std::vector<std::string> &params)
     Image3 img(640 /* width */, 480 /* height */);
     cu_utils::Renderer renderer(cu_utils::Mode::LAMBERT);
 
-    renderer.render(img, hw1_scenes[scene_id]);
+    renderer.render(img, biScene2cuScene(hw1_scenes[scene_id]));
 
     return img;
 }
@@ -189,7 +293,7 @@ Image3 hw_1_6(const std::vector<std::string> &params)
     renderer.spp = spp;
     renderer.maxDepth = 0;
 
-    renderer.render(img, hw1_scenes[scene_id]);
+    renderer.render(img, biScene2cuScene(hw1_scenes[scene_id]));
 
     return img;
 }
@@ -225,7 +329,7 @@ Image3 hw_1_7(const std::vector<std::string> &params)
     cu_utils::Renderer renderer(cu_utils::Mode::MATTE_REFLECT);
     renderer.spp = spp;
 
-    renderer.render(img, hw1_scenes[scene_id]);
+    renderer.render(img, biScene2cuScene(hw1_scenes[scene_id]));
 
     return img;
 }
@@ -261,7 +365,7 @@ Image3 hw_1_8(const std::vector<std::string> &params)
     renderer.maxDepth = 4;
 
     Image3 img(1280 /* width */, 960 /* height */);
-    renderer.render(img, hw1_scenes[scene_id]);
+    renderer.render(img, biScene2cuScene(hw1_scenes[scene_id]));
 
     // Image3 img(512 /* width */, 384 /* height */);
     // renderer.render(img, cu_utils::Renderer::getCustomScene());

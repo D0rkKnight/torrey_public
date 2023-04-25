@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utils.h"
-#include "../hw1_scenes.h"
+#include "classdef.h"
 #include <iostream>
 #include <vector>
 
@@ -15,9 +15,12 @@ namespace cu_utils
 
     struct Shape
     {
+    public:
         Vector3 center;
         Real radius;
         int material_id;
+
+        RayHit checkHit(const Ray &ray) const;
     };
 
     struct Material
@@ -48,38 +51,6 @@ namespace cu_utils
         std::vector<Material> materials;
         std::vector<PointLight> lights;
 
-        // Transformer from hw1::Scene to cu_utils::Scene
-        Scene(hw1::Scene hw1Scene)
-        {
-            camera = AbstractCamera{hw1Scene.camera.lookfrom, hw1Scene.camera.lookat, hw1Scene.camera.up, hw1Scene.camera.vfov};
-            for (const auto hw1Sphere : hw1Scene.shapes)
-            {
-                shapes.push_back(Shape{hw1Sphere.center, hw1Sphere.radius, hw1Sphere.material_id});
-            }
-            for (const auto hw1Material : hw1Scene.materials)
-            {
-                MaterialType type;
-                switch (hw1Material.type)
-                {
-                case hw1::MaterialType::Diffuse:
-                    type = MaterialType::Diffuse;
-                    break;
-                case hw1::MaterialType::Mirror:
-                    type = MaterialType::Mirror;
-                    break;
-                default:
-                    break;
-                }
-                materials.push_back(Material{type, hw1Material.color});
-            }
-            for (const auto hw1Light : hw1Scene.lights)
-            {
-                lights.push_back(PointLight{hw1Light.intensity, hw1Light.position});
-            }
-        }
+        Scene();
     };
-
-    // Scene parse_scene(const std::vector<std::string> &params);
-
-    void print_scene(const Scene &scene);
 }

@@ -10,16 +10,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
 if(MSVC)
-  add_compile_options(/Wall)
+add_compile_options(/Wall)
 else()
-  add_compile_options(-Wall)
+add_compile_options(-Wall)
 endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
+# Set custom files as src as well
+file(GLOB_RECURSE CUSTOM_SRCS ${CMAKE_SOURCE_DIR}/src/custom/*.cpp)
+
 set(SRCS src/3rdparty/miniz.h
-         src/3rdparty/miniz.c
-         src/3rdparty/pugiconfig.hpp
+src/3rdparty/miniz.c
+src/3rdparty/pugiconfig.hpp
          src/3rdparty/pugixml.hpp
          src/3rdparty/pugixml.cpp
          src/3rdparty/stb_image.h
@@ -56,7 +59,12 @@ set(SRCS src/3rdparty/miniz.h
          src/parse_scene.cpp
          src/parse_serialized.cpp
          src/print_scene.cpp
-         src/transform.cpp)
+         src/transform.cpp
+
+        ${CUSTOM_SRCS}
+        #  ${CUSTOM_HEADERS}
+         )
+
 
 add_library(torrey_lib STATIC ${SRCS})
 add_executable(torrey src/main.cpp)
@@ -67,9 +75,9 @@ target_link_libraries(torrey Threads::Threads)
 
 target_link_libraries(torrey torrey_lib)
 
-# Nuke them warnings
-if(MSVC)
-    add_compile_options(/W0)
-elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-    add_compile_options(-w)
-endif()
+# # Nuke them warnings
+# if(MSVC)
+#     add_compile_options(/W0)
+# elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+# add_compile_options(-w)
+# endif()

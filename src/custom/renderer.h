@@ -43,12 +43,6 @@ namespace cu_utils
         {
         }
 
-        // Simple transformer for hw1 scenes
-        void render(Image3 &img, const hw1::Scene &scene, int seed = 0)
-        {
-            render(img, Scene(scene), seed);
-        }
-
         void render(Image3 &img, const Scene &scene, int seed = 0)
         {
             // Build better camera with scene data
@@ -195,7 +189,7 @@ namespace cu_utils
             RayHit bestHit = RayHit();
             for (const Shape &sphere : spheres)
             {
-                RayHit hit = cu_utils::hitSphere(sphere, ray);
+                RayHit hit = sphere.checkHit(ray);
                 if (hit.t < 0)
                     continue;
 
@@ -247,76 +241,6 @@ namespace cu_utils
             }
 
             return color;
-        }
-
-        static Scene
-        getTestScene()
-        {
-            // Create a default scene
-            hw1::Scene scene{
-
-                hw1::Camera{
-                    Vector3{0, 0, 0},
-                    Vector3{0, 0, -1},
-                    Vector3{0, 1, 0},
-                    90,
-                },
-                std::vector<hw1::Sphere>{
-                    {Vector3{0.0, 0.0, -2.0}, 1.0, 0},
-                },
-                std::vector<hw1::Material>{
-                    {hw1::MaterialType::Diffuse, Vector3{0.75, 0.25, 0.25}},
-                },
-                std::vector<hw1::PointLight>{
-                    {Vector3{100, 100, 100}, Vector3{5, 5, -2}},
-                },
-            };
-
-            return Scene(scene);
-        }
-
-        static Scene
-        getCustomScene()
-        {
-            // Massive array of spheres
-            hw1::Scene scene{
-
-                hw1::Camera{
-                    Vector3{0, 0, -1},
-                    Vector3{0, 0, -2},
-                    Vector3{0, 1, 0},
-                    90,
-                },
-                std::vector<hw1::Sphere>{},
-                std::vector<hw1::Material>{
-                    {hw1::MaterialType::Mirror, Vector3{0.75, 0.25, 0.25}},
-                    {hw1::MaterialType::Mirror, Vector3{0.25, 0.75, 0.25}},
-                    {hw1::MaterialType::Mirror, Vector3{0.25, 0.25, 0.75}},
-                },
-                std::vector<hw1::PointLight>{
-                    {Vector3{100, 100, 100}, Vector3{0, 0, -3}},
-                },
-            };
-
-            // Create a bunch of spheres
-            for (int i = 0; i < 20; i += 2)
-            {
-                for (int j = 0; j < 20; j += 2)
-                {
-                    for (int k = 0; k < 20; k += 2)
-                    {
-                        hw1::Sphere sphere{
-                            Vector3{(Real)i - 10, (Real)j - 10, (Real)k - 10},
-                            0.5,
-                            (i + j + k) % 3,
-                        };
-
-                        scene.shapes.push_back(sphere);
-                    }
-                }
-            }
-
-            return Scene(scene);
         }
     };
 
