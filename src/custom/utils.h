@@ -9,45 +9,6 @@ namespace cu_utils
 {
     const Real M_PI = 3.14159265358979323846;
 
-    // RayHit hitSphere(const Shape &sphere, const Ray &ray)
-    // {
-    //     // Borrowed from RT in One Weekend
-    //     Vector3 oc = ray.origin - sphere.center; // Vector from origin to center of sphere
-    //     auto a = dot(ray.dir, ray.dir);
-    //     auto b = 2 * dot(oc, ray.dir);
-    //     auto c = dot(oc, oc) - sphere.radius * sphere.radius;
-    //     auto discriminant = b * b - 4 * a * c;
-
-    //     if (discriminant > 0)
-    //     {
-    //         // Return distance to hit point
-
-    //         // Check the closer hit point first
-    //         Real t = (-b - sqrt(discriminant)) / (2.0 * a);
-    //         Vector3 n = normalize(ray * t - sphere.center);
-
-    //         if (t <= 0)
-    //         {
-    //             // Check the further hit point
-    //             t = (-b + sqrt(discriminant)) / (2.0 * a);
-
-    //             // normal is pointing the other way in this case
-    //             n = -normalize(ray * t - sphere.center);
-    //         }
-
-    //         // Both potential hit points are behind the camera, invalid.
-    //         if (t <= 0)
-    //             return RayHit();
-
-    //         // Valid rayhit found, returning
-    //         return RayHit(true, t, &sphere, n);
-    //     }
-    //     else
-    //     {
-    //         return RayHit(); // Missed
-    //     }
-    // }
-
     inline Real d2r(Real deg)
     {
         return deg * M_PI / 180;

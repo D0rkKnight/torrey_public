@@ -5,10 +5,11 @@
 
 #include "utils.h"
 #include "../vector.h"
-#include "classdef.h"
 
 namespace cu_utils
 {
+    class Shape; // Forward declaration
+
     class Ray
     {
     public:

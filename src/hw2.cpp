@@ -3,7 +3,11 @@
 #include "print_scene.h"
 #include "timer.h"
 
-Image3 hw_2_1(const std::vector<std::string> &params) {
+#include "custom/scene.h"
+#include "custom/renderer.h"
+
+Image3 hw_2_1(const std::vector<std::string> &params)
+{
     // Homework 2.1: render a single triangle and outputs
     // its barycentric coordinates.
     // We will use the following camera parameter
@@ -16,15 +20,20 @@ Image3 hw_2_1(const std::vector<std::string> &params) {
 
     std::vector<float> tri_params;
     int spp = 16;
-    for (int i = 0; i < (int)params.size(); i++) {
-        if (params[i] == "-spp") {
+    for (int i = 0; i < (int)params.size(); i++)
+    {
+        if (params[i] == "-spp")
+        {
             spp = std::stoi(params[++i]);
-        } else {
+        }
+        else
+        {
             tri_params.push_back(std::stof(params[i]));
         }
     }
 
-    if (tri_params.size() < 9) {
+    if (tri_params.size() < 9)
+    {
         // Not enough parameters to parse the triangle vertices.
         return Image3(0, 0);
     }
@@ -35,10 +44,19 @@ Image3 hw_2_1(const std::vector<std::string> &params) {
 
     Image3 img(640 /* width */, 480 /* height */);
 
+    cu_utils::Scene scene = cu_utils::Scene::defaultScene();
+    scene.shapes.push_back(new cu_utils::Triangle(p0, p1, p2, 0));
+
+    cu_utils::Renderer renderer(cu_utils::Mode::BARYCENTRIC);
+    renderer.spp = spp;
+
+    renderer.render(img, scene);
+
     return img;
 }
 
-Image3 hw_2_2(const std::vector<std::string> &params) {
+Image3 hw_2_2(const std::vector<std::string> &params)
+{
     // Homework 2.2: render a triangle mesh.
     // We will use the same camera parameter:
     // lookfrom = (0, 0,  0)
@@ -47,33 +65,35 @@ Image3 hw_2_2(const std::vector<std::string> &params) {
     // vfov     = 45
     // and we will use a fixed triangle mesh: a tetrahedron!
     int spp = 16;
-    for (int i = 0; i < (int)params.size(); i++) {
-        if (params[i] == "-spp") {
+    for (int i = 0; i < (int)params.size(); i++)
+    {
+        if (params[i] == "-spp")
+        {
             spp = std::stoi(params[++i]);
         }
     }
 
     std::vector<Vector3> positions = {
-        Vector3{ 0.0,  0.5, -2.0},
-        Vector3{ 0.0, -0.3, -1.0},
-        Vector3{ 1.0, -0.5, -3.0},
-        Vector3{-1.0, -0.5, -3.0}
-    };
+        Vector3{0.0, 0.5, -2.0},
+        Vector3{0.0, -0.3, -1.0},
+        Vector3{1.0, -0.5, -3.0},
+        Vector3{-1.0, -0.5, -3.0}};
     std::vector<Vector3i> indices = {
         Vector3i{0, 1, 2},
         Vector3i{0, 3, 1},
         Vector3i{0, 2, 3},
-        Vector3i{1, 2, 3}
-    };
+        Vector3i{1, 2, 3}};
 
     Image3 img(640 /* width */, 480 /* height */);
-    
+
     return img;
 }
 
-Image3 hw_2_3(const std::vector<std::string> &params) {
+Image3 hw_2_3(const std::vector<std::string> &params)
+{
     // Homework 2.3: render a scene file provided by our parser.
-    if (params.size() < 1) {
+    if (params.size() < 1)
+    {
         return Image3(0, 0);
     }
 
@@ -86,9 +106,11 @@ Image3 hw_2_3(const std::vector<std::string> &params) {
     return Image3(0, 0);
 }
 
-Image3 hw_2_4(const std::vector<std::string> &params) {
+Image3 hw_2_4(const std::vector<std::string> &params)
+{
     // Homework 2.4: render the AABBs of the scene.
-    if (params.size() < 1) {
+    if (params.size() < 1)
+    {
         return Image3(0, 0);
     }
 
@@ -101,9 +123,11 @@ Image3 hw_2_4(const std::vector<std::string> &params) {
     return Image3(0, 0);
 }
 
-Image3 hw_2_5(const std::vector<std::string> &params) {
+Image3 hw_2_5(const std::vector<std::string> &params)
+{
     // Homework 2.5: rendering with BVHs
-    if (params.size() < 1) {
+    if (params.size() < 1)
+    {
         return Image3(0, 0);
     }
 

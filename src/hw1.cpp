@@ -18,7 +18,7 @@ cu_utils::Scene biScene2cuScene(const Scene &hw1Scene)
     cuScene.camera = cu_utils::AbstractCamera{hw1Scene.camera.lookfrom, hw1Scene.camera.lookat, hw1Scene.camera.up, hw1Scene.camera.vfov};
     for (const auto hw1Sphere : hw1Scene.shapes)
     {
-        cuScene.shapes.push_back(cu_utils::Shape{hw1Sphere.center, hw1Sphere.radius, hw1Sphere.material_id});
+        cuScene.shapes.push_back(new cu_utils::Sphere(hw1Sphere.center, hw1Sphere.radius, hw1Sphere.material_id));
     }
     for (const auto hw1Material : hw1Scene.materials)
     {

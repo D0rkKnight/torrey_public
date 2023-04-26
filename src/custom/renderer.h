@@ -9,8 +9,8 @@
 #include "utils.h"
 #include "camera.h"
 #include "ray.h"
+
 #include "pcg.h"
-#include "../hw1_scenes.h"
 #include <iostream>
 #include <vector>
 #include "scene.h"
@@ -26,6 +26,7 @@ namespace cu_utils
         FLAT,
         LAMBERT,
         MATTE_REFLECT, // Handles matte and reflective materials
+        BARYCENTRIC,   // Renders triangles as barycentric and everything else as flat
     };
 
     /**
@@ -177,19 +178,35 @@ namespace cu_utils
                     }
                 }
                 break;
+                case Mode::BARYCENTRIC:
+                {
+                    if (const Triangle *tri = dynamic_cast<const Triangle *>(bestHit.sphere))
+                    {
+                        Vector3 bary = tri->getBarycentric(ray, bestHit);
+                        color = bary;
+                    }
+                    else // Not a triangle, just render as flat
+                    {
+                        Material material = scene.materials[bestHit.sphere->material_id];
+
+                        // Get the diffuse color from the mat
+                        Vector3 diffuseColor = material.color;
+                        color = diffuseColor;
+                    }
+                }
                 }
             }
 
             return color;
         }
 
-        RayHit castRay(const Ray &ray, const std::vector<Shape> &spheres)
+        RayHit castRay(const Ray &ray, const std::vector<Shape *> &spheres)
         {
             // Run against every sphere
             RayHit bestHit = RayHit();
-            for (const Shape &sphere : spheres)
+            for (const Shape *sphere : spheres)
             {
-                RayHit hit = sphere.checkHit(ray);
+                RayHit hit = sphere->checkHit(ray);
                 if (hit.t < 0)
                     continue;
 

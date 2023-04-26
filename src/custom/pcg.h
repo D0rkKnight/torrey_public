@@ -44,14 +44,14 @@ inline pcg32_state init_pcg32(uint64_t stream_id = 1, uint64_t seed = 0x853c49e6
 }
 
 template <typename T>
-T next_pcg32_real(pcg32_state &rng)
+inline T next_pcg32_real(pcg32_state &rng)
 {
     return T(0);
 }
 
 // https://github.com/wjakob/pcg32/blob/master/pcg32.h
 template <>
-float next_pcg32_real(pcg32_state &rng)
+inline float next_pcg32_real(pcg32_state &rng)
 {
     union
     {
@@ -64,7 +64,7 @@ float next_pcg32_real(pcg32_state &rng)
 
 // https://github.com/wjakob/pcg32/blob/master/pcg32.h
 template <>
-double next_pcg32_real(pcg32_state &rng)
+inline double next_pcg32_real(pcg32_state &rng)
 {
     union
     {

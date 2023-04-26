@@ -1,9 +1,9 @@
 #pragma once
 
 #include "utils.h"
-#include "classdef.h"
 #include <iostream>
 #include <vector>
+#include "shapes.h"
 
 namespace cu_utils
 {
@@ -11,16 +11,6 @@ namespace cu_utils
     {
         Diffuse,
         Mirror
-    };
-
-    struct Shape
-    {
-    public:
-        Vector3 center;
-        Real radius;
-        int material_id;
-
-        RayHit checkHit(const Ray &ray) const;
     };
 
     struct Material
@@ -47,7 +37,7 @@ namespace cu_utils
     struct Scene
     {
         AbstractCamera camera;
-        std::vector<Shape> shapes;
+        std::vector<Shape *> shapes;
         std::vector<Material> materials;
         std::vector<PointLight> lights;
 
