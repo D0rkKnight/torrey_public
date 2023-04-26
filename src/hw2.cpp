@@ -46,6 +46,10 @@ Image3 hw_2_1(const std::vector<std::string> &params)
 
     cu_utils::Scene scene = cu_utils::Scene::defaultScene();
     scene.shapes.push_back(new cu_utils::Triangle(p0, p1, p2, 0));
+    scene.camera.lookfrom = Vector3{0, 0, 0};
+    scene.camera.lookat = Vector3{0, 0, -1};
+    scene.camera.up = Vector3{0, 1, 0};
+    scene.camera.vfov = 45;
 
     cu_utils::Renderer renderer(cu_utils::Mode::BARYCENTRIC);
     renderer.spp = spp;
