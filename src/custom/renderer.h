@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "camera.h"
 #include "ray.h"
+#include "bounding_box.h"
 
 #include "pcg.h"
 #include <iostream>
@@ -73,6 +74,10 @@ namespace cu_utils
                              .setFov(scene.camera.vfov)
                              .build();
 
+            // Build object hierarchy
+            BBNode root = BBNode::buildTree(scene.shapes);
+            std::cout << "Built object hierarchy" << std::endl;
+
             constexpr int tile_size = 16;
             int num_tiles_x = (img.width + tile_size - 1) / tile_size;
             int num_tiles_y = (img.height + tile_size - 1) / tile_size;
@@ -90,13 +95,13 @@ namespace cu_utils
                             for (int y = y0; y < y1; y++) {
                             for (int x = x0; x < x1; x++) {
                                 
-                                img(x,y) = renderPixel(img, scene, x, y, seed);
+                                img(x,y) = renderPixel(img, scene, root, x, y, seed);
                             }
                             } },
                          Vector2i(num_tiles_x, num_tiles_y));
         }
 
-        Vector3 renderPixel(Image3 &img, const Scene &scene, int x, int y, int seed = 0)
+        Vector3 renderPixel(Image3 &img, const Scene &scene, BBNode &objRoot, int x, int y, int seed = 0)
         {
             // Build better camera with scene data
             Camera cam = CameraBuilder(img.width, img.height)
@@ -110,7 +115,7 @@ namespace cu_utils
             if (spp == 1)
             {
                 Ray ray = cam.ScToWRay(x + 0.5, y + 0.5);
-                return getPixelColor(ray, scene, maxDepth);
+                return getPixelColor(ray, scene, objRoot, maxDepth);
             }
 
             else
@@ -126,15 +131,15 @@ namespace cu_utils
                     Real offX = next_pcg32_real<Real>(rng);
                     Real offY = next_pcg32_real<Real>(rng);
                     Ray ray = cam.ScToWRay(x + offX, y + offY);
-                    color += getPixelColor(ray, scene, maxDepth);
+                    color += getPixelColor(ray, scene, objRoot, maxDepth);
                 }
                 return color / (Real)spp;
             }
         }
 
-        Vector3 getPixelColor(const Ray &ray, const Scene &scene, int depth = 0)
+        Vector3 getPixelColor(const Ray &ray, const Scene &scene, const BBNode &objRoot, int depth = 0)
         {
-            auto bestHit = castRay(ray, scene.shapes);
+            auto bestHit = castRay(ray, scene.shapes, objRoot);
 
             Vector3 color = bgCol;
             if (bestHit.hit > 0)
@@ -168,7 +173,7 @@ namespace cu_utils
                 case Mode::LAMBERT:
 
                 { // Check every light in the scene
-                    color = lambert(ray, bestHit, scene);
+                    color = lambert(ray, bestHit, scene, objRoot);
                 }
 
                 break;
@@ -180,7 +185,7 @@ namespace cu_utils
 
                     if (material.type == MaterialType::Diffuse || depth <= 0)
                     {
-                        color = lambert(ray, bestHit, scene);
+                        color = lambert(ray, bestHit, scene, objRoot);
                     }
                     else if (material.type == MaterialType::Mirror)
                     {
@@ -193,7 +198,7 @@ namespace cu_utils
                         reflectRay.origin += reflectRay.dir * 0.0001;
 
                         // Recurse
-                        color = hadamard(material.color, getPixelColor(reflectRay, scene, depth - 1));
+                        color = hadamard(material.color, getPixelColor(reflectRay, scene, objRoot, depth - 1));
                     }
                 }
                 break;
@@ -225,41 +230,34 @@ namespace cu_utils
             return color;
         }
 
-        RayHit castRay(const Ray &ray, const std::vector<Shape *> &spheres)
+        RayHit castRay(const Ray &ray, const vector<Shape *> &shapes, const BBNode &objRoot)
         {
-            // Run against every sphere
-            RayHit bestHit = RayHit();
-            for (const Shape *shape : spheres)
+            // AABB Mode only behavior
+            if (mode == Mode::AABB)
             {
-                BoundingBox bounds = shape->getBoundingBox();
-
-                // Check if the ray intersects the bounding box
-                if (!bounds.checkHit(ray))
-                    continue;
-
-                if (mode == Mode::AABB)
+                // Run against every shape
+                RayHit bestHit = RayHit();
+                for (const Shape *shape : shapes)
                 {
+                    BoundingBox bounds = shape->getBoundingBox();
+
+                    // Check if the ray intersects the bounding box
+                    if (!bounds.checkHit(ray))
+                        continue;
+
                     // Some unique AABB behavior
                     // Just dump out a dummy hit for the AABB renderer
                     return RayHit{true, 1, shape, Vector3{0, 0, 0}};
                 }
 
-                RayHit hit;
-                hit = shape->checkHit(ray);
-
-                if (hit.t < 0)
-                    continue;
-
-                if (bestHit.t < 0 || hit.t < bestHit.t)
-                {
-                    bestHit = hit;
-                }
+                return bestHit;
             }
 
-            return bestHit;
+            // What it's supposed to do: Check the object tree and render
+            return objRoot.checkHit(ray);
         }
 
-        Vector3 lambert(const Ray ray, const RayHit bestHit, const Scene &scene)
+        Vector3 lambert(const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot)
         {
             Vector3 color = Vector3{0, 0, 0};
             Vector3 hit = ray * bestHit.t;
@@ -287,7 +285,7 @@ namespace cu_utils
                 // Move the ray forward by 10^-4
                 shadowRay.origin += shadowRay.dir * 0.0001;
 
-                RayHit shadowHit = castRay(shadowRay, scene.shapes);
+                RayHit shadowHit = castRay(shadowRay, scene.shapes, objRoot);
                 if (shadowHit.hit && shadowHit.t < distance(light.position, hit))
                 {
                     // If the shadow ray hit something, then it's in shadow

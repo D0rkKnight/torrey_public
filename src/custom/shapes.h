@@ -4,20 +4,10 @@
 #include <vector>
 #include "../vector.h"
 #include "ray.h"
+#include "bounding_box.h"
 
 namespace cu_utils
 {
-    struct BoundingBox
-    {
-    public:
-        Vector3 minc, maxc;
-
-        BoundingBox(Vector3 min, Vector3 max);
-        BoundingBox();
-
-        // Returns true if the ray intersects the bounding box
-        bool checkHit(const Ray &ray) const;
-    };
 
     struct Shape
     {

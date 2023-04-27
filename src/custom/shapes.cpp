@@ -95,6 +95,9 @@ RayHit Triangle::checkHit(const Ray &ray) const
     if (dot(n, ray.dir) > 0)
         n = -n;
 
+    if (t <= 0)
+        return RayHit(); // Triangle is behind the camera
+
     return RayHit(true, t, this, n);
 }
 
@@ -127,29 +130,4 @@ BoundingBox Triangle::getBoundingBox() const
     Vector3 minv = min<Real>(v0, min<Real>(v1, v2));
     Vector3 maxv = max<Real>(v0, max<Real>(v1, v2));
     return BoundingBox(minv, maxv);
-}
-
-BoundingBox::BoundingBox(Vector3 min, Vector3 max)
-{
-    this->minc = min;
-    this->maxc = max;
-}
-
-BoundingBox::BoundingBox()
-{
-    minc = Vector3{std::numeric_limits<Real>::max(), std::numeric_limits<Real>::max(), std::numeric_limits<Real>::max()};
-    maxc = Vector3{std::numeric_limits<Real>::lowest(), std::numeric_limits<Real>::lowest(), std::numeric_limits<Real>::lowest()};
-}
-
-bool BoundingBox::checkHit(const Ray &ray) const
-{
-    Vector3 invdir = 1.0 / ray.dir;
-    Vector3 t0 = (minc - ray.origin) * invdir;
-    Vector3 t1 = (maxc - ray.origin) * invdir;
-    Vector3 tmin = min(t0, t1);
-    Vector3 tmax = max(t0, t1);
-    Real tminmax = std::max(tmin.x, std::max(tmin.y, tmin.z));
-    Real tmaxmin = std::min(tmax.x, std::min(tmax.y, tmax.z));
-
-    return tminmax <= tmaxmin;
 }
