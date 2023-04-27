@@ -2,7 +2,7 @@
 #include <iostream>
 
 using namespace cu_utils;
-using namespace std;
+// using namespace std;
 
 RayHit Sphere::checkHit(const Ray &ray) const
 {
@@ -50,6 +50,11 @@ Sphere::Sphere(Vector3 center, Real radius, int material_id)
     this->material_id = material_id;
 }
 
+BoundingBox Sphere::getBoundingBox() const
+{
+    return BoundingBox(center - Vector3(1, 1, 1) * radius, center + Vector3(1, 1, 1) * radius);
+}
+
 Triangle::Triangle(Vector3 v0, Vector3 v1, Vector3 v2, int material_id)
 {
     this->v0 = v0;
@@ -86,6 +91,10 @@ RayHit Triangle::checkHit(const Ray &ray) const
     Real t = f * dot(e2, q);
     Vector3 n = normalize(cross(e1, e2));
 
+    // Return the normal facing the ray
+    if (dot(n, ray.dir) > 0)
+        n = -n;
+
     return RayHit(true, t, this, n);
 }
 
@@ -111,4 +120,36 @@ Vector3 Triangle::getBarycentric(const Ray &ray, const RayHit &hit) const
     Real v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
     return Vector3(1 - u - v, u, v);
+}
+
+BoundingBox Triangle::getBoundingBox() const
+{
+    Vector3 minv = min<Real>(v0, min<Real>(v1, v2));
+    Vector3 maxv = max<Real>(v0, max<Real>(v1, v2));
+    return BoundingBox(minv, maxv);
+}
+
+BoundingBox::BoundingBox(Vector3 min, Vector3 max)
+{
+    this->minc = min;
+    this->maxc = max;
+}
+
+BoundingBox::BoundingBox()
+{
+    minc = Vector3{std::numeric_limits<Real>::max(), std::numeric_limits<Real>::max(), std::numeric_limits<Real>::max()};
+    maxc = Vector3{std::numeric_limits<Real>::lowest(), std::numeric_limits<Real>::lowest(), std::numeric_limits<Real>::lowest()};
+}
+
+bool BoundingBox::checkHit(const Ray &ray) const
+{
+    Vector3 invdir = 1.0 / ray.dir;
+    Vector3 t0 = (minc - ray.origin) * invdir;
+    Vector3 t1 = (maxc - ray.origin) * invdir;
+    Vector3 tmin = min(t0, t1);
+    Vector3 tmax = max(t0, t1);
+    Real tminmax = std::max(tmin.x, std::max(tmin.y, tmin.z));
+    Real tmaxmin = std::min(tmax.x, std::min(tmax.y, tmax.z));
+
+    return tminmax <= tmaxmin;
 }

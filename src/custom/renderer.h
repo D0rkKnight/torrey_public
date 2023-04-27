@@ -16,6 +16,7 @@
 #include "scene.h"
 
 #include "../parallel.h"
+#include "../parse_scene.h"
 
 namespace cu_utils
 {
@@ -27,6 +28,7 @@ namespace cu_utils
         LAMBERT,
         MATTE_REFLECT, // Handles matte and reflective materials
         BARYCENTRIC,   // Renders triangles as barycentric and everything else as flat
+        AABB,
     };
 
     /**
@@ -39,9 +41,26 @@ namespace cu_utils
         Mode mode;
         int spp = 1;
         int maxDepth = 1;
+        Vector3 bgCol = Vector3(0.5, 0.5, 0.5);
 
         Renderer(Mode mode) : mode(mode)
         {
+        }
+
+        Image3 render(const ParsedScene &parsed, int seed = 0)
+        {
+
+            spp = parsed.samples_per_pixel;
+            std::cout << "spp overriden to " << spp << std::endl;
+
+            bgCol = parsed.background_color;
+            std::cout << "bgCol overriden to " << bgCol << std::endl;
+
+            Image3 img(parsed.camera.width, parsed.camera.height);
+            Scene scene(parsed);
+            render(img, scene, seed);
+
+            return img;
         }
 
         void render(Image3 &img, const Scene &scene, int seed = 0)
@@ -117,7 +136,7 @@ namespace cu_utils
         {
             auto bestHit = castRay(ray, scene.shapes);
 
-            Vector3 color = Vector3{0.5, 0.5, 0.5};
+            Vector3 color = bgCol;
             if (bestHit.hit > 0)
             {
                 // Just a default value
@@ -194,6 +213,12 @@ namespace cu_utils
                         color = diffuseColor;
                     }
                 }
+                break;
+                case Mode::AABB:
+                {
+                    // Collision should be with a bounding box, just mark as white
+                    color = Vector3{1, 1, 1};
+                }
                 }
             }
 
@@ -204,9 +229,24 @@ namespace cu_utils
         {
             // Run against every sphere
             RayHit bestHit = RayHit();
-            for (const Shape *sphere : spheres)
+            for (const Shape *shape : spheres)
             {
-                RayHit hit = sphere->checkHit(ray);
+                BoundingBox bounds = shape->getBoundingBox();
+
+                // Check if the ray intersects the bounding box
+                if (!bounds.checkHit(ray))
+                    continue;
+
+                if (mode == Mode::AABB)
+                {
+                    // Some unique AABB behavior
+                    // Just dump out a dummy hit for the AABB renderer
+                    return RayHit{true, 1, shape, Vector3{0, 0, 0}};
+                }
+
+                RayHit hit;
+                hit = shape->checkHit(ray);
+
                 if (hit.t < 0)
                     continue;
 

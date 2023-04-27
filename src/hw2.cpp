@@ -90,6 +90,26 @@ Image3 hw_2_2(const std::vector<std::string> &params)
 
     Image3 img(640 /* width */, 480 /* height */);
 
+    cu_utils::Scene scene = cu_utils::Scene::defaultScene();
+    scene.camera.lookfrom = Vector3{0, 0, 0};
+    scene.camera.lookat = Vector3{0, 0, -1};
+    scene.camera.up = Vector3{0, 1, 0};
+    scene.camera.vfov = 45;
+
+    for (int i = 0; i < (int)indices.size(); i++)
+    {
+        scene.shapes.push_back(new cu_utils::Triangle(
+            positions[indices[i][0]],
+            positions[indices[i][1]],
+            positions[indices[i][2]],
+            i));
+    }
+
+    cu_utils::Renderer renderer(cu_utils::Mode::BARYCENTRIC);
+    renderer.spp = spp;
+
+    renderer.render(img, scene);
+
     return img;
 }
 
@@ -107,7 +127,10 @@ Image3 hw_2_3(const std::vector<std::string> &params)
     std::cout << "Scene parsing done. Took " << tick(timer) << " seconds." << std::endl;
     std::cout << scene << std::endl;
 
-    return Image3(0, 0);
+    cu_utils::Renderer renderer(cu_utils::Mode::MATTE_REFLECT);
+    renderer.maxDepth = 3;
+
+    return renderer.render(scene);
 }
 
 Image3 hw_2_4(const std::vector<std::string> &params)
@@ -124,7 +147,9 @@ Image3 hw_2_4(const std::vector<std::string> &params)
     std::cout << "Scene parsing done. Took " << tick(timer) << " seconds." << std::endl;
     UNUSED(scene);
 
-    return Image3(0, 0);
+    cu_utils::Renderer renderer(cu_utils::Mode::AABB);
+
+    return renderer.render(scene);
 }
 
 Image3 hw_2_5(const std::vector<std::string> &params)

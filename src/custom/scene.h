@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include "shapes.h"
+#include "../parse_scene.h"
 
 namespace cu_utils
 {
@@ -42,6 +43,8 @@ namespace cu_utils
         std::vector<PointLight> lights;
 
         Scene();
+        Scene(ParsedScene parsedScene);
+
         static Scene defaultScene();
     };
 }
