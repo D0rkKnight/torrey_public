@@ -39,12 +39,12 @@ Scene::Scene(ParsedScene parsed)
     for (int i = 0; i < (int)parsed.shapes.size(); i++)
     {
         ParsedShape parsedShape = parsed.shapes[i];
-        Shape *shape = nullptr;
         int matID = get_material_id(parsedShape);
 
         if (auto sphere = std::get_if<ParsedSphere>(&parsedShape))
         {
-            shape = new Sphere(sphere->position, sphere->radius, matID);
+            Shape *shape = new Sphere(sphere->position, sphere->radius, matID);
+            shapes.push_back(shape);
         }
         else if (auto mesh = std::get_if<ParsedTriangleMesh>(&parsedShape))
         {
@@ -55,7 +55,7 @@ Scene::Scene(ParsedScene parsed)
                 Vector3 v0 = mesh->positions[index[0]];
                 Vector3 v1 = mesh->positions[index[1]];
                 Vector3 v2 = mesh->positions[index[2]];
-                shape = new Triangle(v0, v1, v2, matID);
+                Shape *shape = new Triangle(v0, v1, v2, matID);
                 shapes.push_back(shape);
             }
         }
@@ -65,7 +65,6 @@ Scene::Scene(ParsedScene parsed)
             continue;
         }
         // set_area_light_id(shape, parsedShape.area_light_id); Dunno what an area light id is
-        shapes.push_back(shape);
     }
 
     // Copy materials

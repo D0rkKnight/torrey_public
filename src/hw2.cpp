@@ -166,5 +166,7 @@ Image3 hw_2_5(const std::vector<std::string> &params)
     std::cout << "Scene parsing done. Took " << tick(timer) << " seconds." << std::endl;
     UNUSED(scene);
 
-    return Image3(0, 0);
+    cu_utils::Renderer renderer(cu_utils::Mode::MATTE_REFLECT);
+
+    return renderer.render(scene);
 }

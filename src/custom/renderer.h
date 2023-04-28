@@ -18,6 +18,7 @@
 
 #include "../parallel.h"
 #include "../parse_scene.h"
+#include "../progressreporter.h"
 
 namespace cu_utils
 {
@@ -81,6 +82,9 @@ namespace cu_utils
             constexpr int tile_size = 16;
             int num_tiles_x = (img.width + tile_size - 1) / tile_size;
             int num_tiles_y = (img.height + tile_size - 1) / tile_size;
+
+            ProgressReporter reporter(num_tiles_x * num_tiles_y);
+
             parallel_for([&](const Vector2i &tile)
                          {
                             int seed = tile[1] * num_tiles_x + tile[0];
@@ -97,8 +101,12 @@ namespace cu_utils
                                 
                                 img(x,y) = renderPixel(img, scene, root, x, y, seed);
                             }
-                            } },
+                            } 
+                            
+                            reporter.update(1); },
                          Vector2i(num_tiles_x, num_tiles_y));
+
+            reporter.done();
         }
 
         Vector3 renderPixel(Image3 &img, const Scene &scene, BBNode &objRoot, int x, int y, int seed = 0)
@@ -254,7 +262,15 @@ namespace cu_utils
             }
 
             // What it's supposed to do: Check the object tree and render
-            return objRoot.checkHit(ray);
+            BBNode::boxesHit = 0;
+            BBNode::scansMade = 0;
+            RayHit bestHit = objRoot.checkHit(ray);
+
+            // std::cout << "Boxes hit: " << BBNode::boxesHit << std::endl;
+            // std::cout << "Scans made: " << BBNode::scansMade << std::endl;
+            // std::cout << "Cull ratio: " << (Real)BBNode::boxesHit / (Real)BBNode::scansMade << std::endl;
+
+            return bestHit;
         }
 
         Vector3 lambert(const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot)

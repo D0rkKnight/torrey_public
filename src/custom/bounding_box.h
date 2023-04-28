@@ -30,5 +30,8 @@ namespace cu_utils
         RayHit checkHit(const Ray &ray) const;
 
         static BBNode buildTree(std::vector<Shape *> shapes);
+
+        static int scansMade;
+        static int boxesHit;
     };
 }

@@ -30,6 +30,9 @@ bool BoundingBox::checkHit(const Ray &ray) const
     return tminmax <= tmaxmin;
 }
 
+int BBNode::scansMade = 0;
+int BBNode::boxesHit = 0;
+
 BBNode::BBNode(BoundingBox box, Shape *shape)
 {
     this->box = box;
@@ -45,10 +48,8 @@ BBNode BBNode::buildTree(std::vector<Shape *> shapes)
     }
 
     // Otherwise, return a branch node
-    BoundingBox box;
     bool dimsInitialized = false;
-
-    BBNode root = BBNode(box, nullptr);
+    BBNode root = BBNode(BoundingBox(), nullptr);
     for (int i = 0; i < shapes.size(); i++)
     {
         BoundingBox cbox = shapes[i]->getBoundingBox();
@@ -56,12 +57,12 @@ BBNode BBNode::buildTree(std::vector<Shape *> shapes)
         // Initialize the root bounding box, will be infinite size otherwise
         if (!dimsInitialized)
         {
-            root.box = box;
+            root.box = cbox;
             dimsInitialized = true;
         }
 
-        box.minc = min(box.minc, cbox.minc);
-        box.maxc = max(box.maxc, cbox.maxc);
+        root.box.minc = min(root.box.minc, cbox.minc);
+        root.box.maxc = max(root.box.maxc, cbox.maxc);
     }
 
     // Get the longer axis and sort the shapes by that axis
@@ -93,10 +94,15 @@ BBNode BBNode::buildTree(std::vector<Shape *> shapes)
 
 RayHit BBNode::checkHit(const Ray &ray) const
 {
+    // Check for bounding box effectiveness.
+    // scansMade++; I believe these hurt performance by breaking parallelism
+
     if (!box.checkHit(ray))
     {
         return RayHit();
     }
+
+    // boxesHit++;
 
     if (shape != nullptr)
     {
