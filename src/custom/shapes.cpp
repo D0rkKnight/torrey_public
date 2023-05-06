@@ -75,6 +75,11 @@ Triangle::Triangle(Vector3 v0, Vector3 v1, Vector3 v2, int material_id)
     uv0 = Vector2(0, 0);
     uv1 = Vector2(1, 0);
     uv2 = Vector2(0, 1);
+
+    // Generate front facing normals from vertices
+    n0 = normalize(cross(v1 - v0, v2 - v0));
+    n1 = n0;
+    n2 = n0;
 }
 
 RayHit Triangle::checkHit(const Ray &ray) const
@@ -103,7 +108,9 @@ RayHit Triangle::checkHit(const Ray &ray) const
 
     // At this point, the ray hits the triangle
     Real t = f * dot(e2, q);
-    Vector3 n = normalize(cross(e1, e2));
+
+    // n is the weighted average of the triangle's normals
+    Vector3 n = normalize(n0 + u * (n1 - n0) + v * (n2 - n0));
 
     // Return the normal facing the ray
     if (dot(n, ray.dir) > 0)

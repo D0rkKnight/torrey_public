@@ -34,6 +34,7 @@ namespace cu_utils
     public:
         Vector3 v0, v1, v2;
         Vector2 uv0, uv1, uv2;
+        Vector3 n0, n1, n2;
 
         Triangle(Vector3 v0, Vector3 v1, Vector3 v2, int material_id);
         RayHit checkHit(const Ray &ray) const override;

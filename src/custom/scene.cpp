@@ -67,6 +67,17 @@ Scene::Scene(ParsedScene parsed)
                     tri->setUVs(uv0, uv1, uv2);
                 }
 
+                // I think normal splitting is already done for us
+                if (mesh->normals.size() > 0)
+                {
+                    Vector3 n0 = mesh->normals[index[0]];
+                    Vector3 n1 = mesh->normals[index[1]];
+                    Vector3 n2 = mesh->normals[index[2]];
+                    tri->n0 = n0;
+                    tri->n1 = n1;
+                    tri->n2 = n2;
+                }
+
                 shapes.push_back(tri);
             }
         }

@@ -29,9 +29,9 @@ Image3 hw_3_2(const std::vector<std::string> &params)
     }
 
     ParsedScene scene = parse_scene(params[0]);
-    UNUSED(scene);
+    cu_utils::Renderer renderer(cu_utils::Mode::MATTE_REFLECT);
 
-    return Image3(0, 0);
+    return renderer.render(scene);
 }
 
 Image3 hw_3_3(const std::vector<std::string> &params)
