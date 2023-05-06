@@ -3,11 +3,14 @@
 #include "utils.h"
 #include <iostream>
 #include <vector>
+#include <map>
 #include "shapes.h"
 #include "../parse_scene.h"
 
 namespace cu_utils
 {
+    class Scene;
+
     enum class MaterialType
     {
         Diffuse,
@@ -17,7 +20,17 @@ namespace cu_utils
     struct Material
     {
         MaterialType type;
-        Vector3 color;
+        Vector3 flatColor;
+        Scene *scene;
+
+        // Can have a backing image texture.
+        ParsedImageTexture *texMeta;
+
+        Material();
+        Material(MaterialType type, Vector3 flatColor);
+
+        Vector3 getColor(Real u, Real v);
+        void loadTexture(ParsedImageTexture *texMeta);
     };
 
     struct PointLight
@@ -42,9 +55,13 @@ namespace cu_utils
         std::vector<Material> materials;
         std::vector<PointLight> lights;
 
+        std::map<std::filesystem::path, Image3> textures;
+
         Scene();
         Scene(ParsedScene parsedScene);
 
         static Scene defaultScene();
+
+        void addTexture(ParsedImageTexture *texMeta);
     };
 }

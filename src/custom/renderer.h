@@ -173,7 +173,7 @@ namespace cu_utils
                     Material material = scene.materials[bestHit.sphere->material_id];
 
                     // Get the diffuse color from the mat
-                    Vector3 diffuseColor = material.color;
+                    Vector3 diffuseColor = material.flatColor;
                     color = diffuseColor;
                 }
                 break;
@@ -206,7 +206,7 @@ namespace cu_utils
                         reflectRay.origin += reflectRay.dir * 0.0001;
 
                         // Recurse
-                        color = hadamard(material.color, getPixelColor(reflectRay, scene, objRoot, depth - 1));
+                        color = hadamard(material.flatColor, getPixelColor(reflectRay, scene, objRoot, depth - 1));
                     }
                 }
                 break;
@@ -222,7 +222,7 @@ namespace cu_utils
                         Material material = scene.materials[bestHit.sphere->material_id];
 
                         // Get the diffuse color from the mat
-                        Vector3 diffuseColor = material.color;
+                        Vector3 diffuseColor = material.flatColor;
                         color = diffuseColor;
                     }
                 }
@@ -283,7 +283,8 @@ namespace cu_utils
                 // Get the material from the scene
                 Material material = scene.materials[bestHit.sphere->material_id];
 
-                Vector3 albedo = material.color;
+                // Use 0 0 uv since we don't have the uv coord from the ray hit yet
+                Vector3 albedo = material.getColor(0, 0);
                 Vector3 lightDir = normalize(light.position - hit);
 
                 Real diffuse = std::max(dot(lightDir, bestHit.normal), 0.0);

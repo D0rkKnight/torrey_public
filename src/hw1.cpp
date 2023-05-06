@@ -36,7 +36,7 @@ cu_utils::Scene biScene2cuScene(const Scene &hw1Scene)
             new std::exception();
             break;
         }
-        cuScene.materials.push_back(cu_utils::Material{type, hw1Material.color});
+        cuScene.materials.push_back(cu_utils::Material(type, hw1Material.color));
     }
     for (const auto hw1Light : hw1Scene.lights)
     {

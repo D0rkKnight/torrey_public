@@ -15,7 +15,7 @@ Scene Scene::defaultScene()
     scene.shapes.push_back(new Sphere(Vector3{0, 0, 2}, (Real)1.0, 0));
 
     // Create materials
-    scene.materials.push_back(Material{MaterialType::Diffuse, Vector3{1.0, 0.5, 0.5}});
+    scene.materials.push_back(Material(MaterialType::Diffuse, Vector3{1.0, 0.5, 0.5}));
 
     return scene;
 }
@@ -25,6 +25,7 @@ Scene::Scene()
     camera = AbstractCamera{Vector3{0, 0, 0}, Vector3{0, 0, 1}, Vector3{0, -1, 0}, (Real)90.0};
     shapes = std::vector<Shape *>();
     materials = std::vector<Material>();
+    textures = std::map<std::filesystem::path, Image3>();
 }
 
 Scene::Scene(ParsedScene parsed)
@@ -72,19 +73,18 @@ Scene::Scene(ParsedScene parsed)
     {
         ParsedMaterial parsedMaterial = parsed.materials[i];
         Material material;
+        material.scene = this;
+
         if (auto diffuse = std::get_if<ParsedDiffuse>(&parsedMaterial))
         {
             material.type = MaterialType::Diffuse;
             if (auto rgb = std::get_if<Vector3>(&diffuse->reflectance))
             {
-                material.color = *rgb;
+                material.flatColor = *rgb;
             }
             else if (auto image_texture = std::get_if<ParsedImageTexture>(&diffuse->reflectance))
             {
-                // Load the image texture and create a texture object
-                // ...
-
-                std::cerr << "Image textures not supported" << std::endl;
+                material.loadTexture(image_texture);
             }
         }
         else if (auto mirror = std::get_if<ParsedMirror>(&parsedMaterial))
@@ -92,14 +92,11 @@ Scene::Scene(ParsedScene parsed)
             material.type = MaterialType::Mirror;
             if (auto rgb = std::get_if<Vector3>(&mirror->reflectance))
             {
-                material.color = *rgb;
+                material.flatColor = *rgb;
             }
             else if (auto image_texture = std::get_if<ParsedImageTexture>(&mirror->reflectance))
             {
-                // Load the image texture and create a texture object
-                // ...
-
-                std::cerr << "Image textures not supported" << std::endl;
+                material.loadTexture(image_texture);
             }
         }
         else
@@ -134,4 +131,59 @@ Scene::Scene(ParsedScene parsed)
         }
         lights.push_back(light);
     }
+}
+
+void Scene::addTexture(ParsedImageTexture *image_texture)
+{
+
+    // If the texture is not already loaded, load it
+    if (textures.find(image_texture->filename) == textures.end())
+    {
+        Image3 image = imread3(image_texture->filename);
+        textures[image_texture->filename] = image;
+    }
+}
+
+Material::Material()
+{
+    type = MaterialType::Diffuse;
+    flatColor = Vector3{1.0, 1.0, 1.0};
+    texMeta = nullptr;
+    scene = nullptr;
+}
+
+Material::Material(MaterialType type, Vector3 flatColor)
+{
+    Material();
+    this->type = type;
+    this->flatColor = flatColor;
+}
+
+Vector3 Material::getColor(Real u, Real v)
+{
+
+    if (texMeta == nullptr)
+        return flatColor;
+
+    // Get the image texture
+    Image3 *image = &(scene->textures[texMeta->filename]);
+
+    // Get the pixel coordinates
+    int x = (int)(image->width * modulo(texMeta->uscale * u + texMeta->uoffset, 1.0));
+    int y = (int)(image->height * modulo(texMeta->vscale * v + texMeta->voffset, 1.0));
+
+    // Get the pixel color
+    return (*image)(x, y);
+}
+
+void Material::loadTexture(ParsedImageTexture *image_texture)
+{
+
+    // Load the image texture and create a texture object
+    // ...
+
+    // Clone to heapsince it's getting deallocated later or something
+    texMeta = new ParsedImageTexture(*image_texture);
+
+    scene->addTexture(image_texture);
 }
