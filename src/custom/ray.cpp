@@ -19,5 +19,16 @@ Vector3 Ray::operator*(Real t) const
  * @brief Construct a new Ray Hit object
  *
  */
-RayHit::RayHit() : hit(false), t(-1), sphere(nullptr), normal(Vector3{0, 0, 0}) {}
-RayHit::RayHit(bool hit, Real t, const Shape *sphere, Vector3 normal) : hit(hit), t(t), sphere(sphere), normal(normal) {}
+RayHit::RayHit() : hit(false), t(-1), sphere(nullptr), normal(Vector3{0, 0, 0}), u(0), v(0) {}
+
+RayHit::RayHit(bool hit, Real t, const Shape *sphere, Vector3 normal, Real u, Real v)
+{
+    RayHit();
+
+    this->hit = hit;
+    this->t = t;
+    this->sphere = sphere;
+    this->normal = normal;
+    this->u = u;
+    this->v = v;
+}

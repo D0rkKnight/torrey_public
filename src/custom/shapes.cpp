@@ -21,6 +21,13 @@ RayHit Sphere::checkHit(const Ray &ray) const
         Real t = (-b - sqrt(discriminant)) / (2.0 * a);
         Vector3 n = normalize(ray * t - center);
 
+        // uv should be based on normal (before any inner-face inversion)
+        auto theta = acos(n.y);
+        auto phi = atan2(-n.z, n.x) + M_PI;
+
+        Real u = phi / (2 * M_PI);
+        Real v = theta / M_PI;
+
         if (t <= 0)
         {
             // Check the further hit point
@@ -35,7 +42,9 @@ RayHit Sphere::checkHit(const Ray &ray) const
             return RayHit();
 
         // Valid rayhit found, returning
-        return RayHit(true, t, this, n);
+        RayHit hit = RayHit(true, t, this, n, u, v);
+
+        return hit;
     }
     else
     {
@@ -61,6 +70,11 @@ Triangle::Triangle(Vector3 v0, Vector3 v1, Vector3 v2, int material_id)
     this->v1 = v1;
     this->v2 = v2;
     this->material_id = material_id;
+
+    // Set uvs so the uv of a hit is just the barycentric coordinates
+    uv0 = Vector2(0, 0);
+    uv1 = Vector2(1, 0);
+    uv2 = Vector2(0, 1);
 }
 
 RayHit Triangle::checkHit(const Ray &ray) const
@@ -98,7 +112,13 @@ RayHit Triangle::checkHit(const Ray &ray) const
     if (t <= 0)
         return RayHit(); // Triangle is behind the camera
 
-    return RayHit(true, t, this, n);
+    // Use barycentric
+    Vector3 bary = getBarycentric(ray, RayHit(true, t, this, n, 0, 0));
+
+    // Interpolate UVs
+    Vector2 uv = bary.x * uv0 + bary.y * uv1 + bary.z * uv2;
+
+    return RayHit(true, t, this, n, uv.x, uv.y);
 }
 
 Vector3 Triangle::getBarycentric(const Ray &ray, const RayHit &hit) const
@@ -130,4 +150,11 @@ BoundingBox Triangle::getBoundingBox() const
     Vector3 minv = min<Real>(v0, min<Real>(v1, v2));
     Vector3 maxv = max<Real>(v0, max<Real>(v1, v2));
     return BoundingBox(minv, maxv);
+}
+
+void Triangle::setUVs(Vector2 uv0, Vector2 uv1, Vector2 uv2)
+{
+    this->uv0 = uv0;
+    this->uv1 = uv1;
+    this->uv2 = uv2;
 }

@@ -32,11 +32,14 @@ namespace cu_utils
     public:
         // Def constructor used for when nothing is hit
         RayHit();
-        RayHit(bool hit, Real t, const Shape *sphere, Vector3 normal);
+        RayHit(bool hit, Real t, const Shape *sphere, Vector3 normal, Real u, Real v);
 
         bool hit;
         Real t;
         const Shape *sphere;
         Vector3 normal;
+
+        Real u;
+        Real v;
     };
 }

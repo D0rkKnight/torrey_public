@@ -33,6 +33,7 @@ namespace cu_utils
     {
     public:
         Vector3 v0, v1, v2;
+        Vector2 uv0, uv1, uv2;
 
         Triangle(Vector3 v0, Vector3 v1, Vector3 v2, int material_id);
         RayHit checkHit(const Ray &ray) const override;
@@ -40,5 +41,7 @@ namespace cu_utils
 
         // Given a hit, return the barycentric coordinates of the hit
         Vector3 getBarycentric(const Ray &ray, const RayHit &hit) const;
+
+        void setUVs(Vector2 uv0, Vector2 uv1, Vector2 uv2);
     };
 }

@@ -56,8 +56,18 @@ Scene::Scene(ParsedScene parsed)
                 Vector3 v0 = mesh->positions[index[0]];
                 Vector3 v1 = mesh->positions[index[1]];
                 Vector3 v2 = mesh->positions[index[2]];
-                Shape *shape = new Triangle(v0, v1, v2, matID);
-                shapes.push_back(shape);
+                Triangle *tri = new Triangle(v0, v1, v2, matID);
+
+                // Pick up UVs too
+                if (mesh->uvs.size() > 0)
+                {
+                    Vector2 uv0 = mesh->uvs[index[0]];
+                    Vector2 uv1 = mesh->uvs[index[1]];
+                    Vector2 uv2 = mesh->uvs[index[2]];
+                    tri->setUVs(uv0, uv1, uv2);
+                }
+
+                shapes.push_back(tri);
             }
         }
         else
@@ -159,6 +169,7 @@ Material::Material(MaterialType type, Vector3 flatColor)
     this->flatColor = flatColor;
 }
 
+// TODO: Move this to the material src probably
 Vector3 Material::getColor(Real u, Real v)
 {
 
@@ -169,11 +180,30 @@ Vector3 Material::getColor(Real u, Real v)
     Image3 *image = &(scene->textures[texMeta->filename]);
 
     // Get the pixel coordinates
-    int x = (int)(image->width * modulo(texMeta->uscale * u + texMeta->uoffset, 1.0));
-    int y = (int)(image->height * modulo(texMeta->vscale * v + texMeta->voffset, 1.0));
+    Real rx = (image->width * modulo(texMeta->uscale * u + texMeta->uoffset, 1.0));
+    Real ry = (image->height * modulo(texMeta->vscale * v + texMeta->voffset, 1.0));
+
+    // Bilinear interpolation
+    int x = (int)rx;
+    int y = (int)ry;
+    int nx = (x + 1) % image->width;
+    int ny = (y + 1) % image->height;
+
+    // Get the four surrounding pixels
+    Vector3 c00 = (*image)(x, y);
+    Vector3 c01 = (*image)(x, ny);
+    Vector3 c10 = (*image)(nx, y);
+    Vector3 c11 = (*image)(nx, ny);
+
+    // Interpolate
+    Real dx = rx - x;
+    Real dy = ry - y;
+    Vector3 c0 = c00 * (1 - dx) + c10 * dx;
+    Vector3 c1 = c01 * (1 - dx) + c11 * dx;
+    Vector3 c = c0 * (1 - dy) + c1 * dy;
 
     // Get the pixel color
-    return (*image)(x, y);
+    return c;
 }
 
 void Material::loadTexture(ParsedImageTexture *image_texture)

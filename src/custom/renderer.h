@@ -255,7 +255,7 @@ namespace cu_utils
 
                     // Some unique AABB behavior
                     // Just dump out a dummy hit for the AABB renderer
-                    return RayHit{true, 1, shape, Vector3{0, 0, 0}};
+                    return RayHit{true, 1, shape, Vector3{0, 0, 0}, 0, 0};
                 }
 
                 return bestHit;
@@ -284,7 +284,7 @@ namespace cu_utils
                 Material material = scene.materials[bestHit.sphere->material_id];
 
                 // Use 0 0 uv since we don't have the uv coord from the ray hit yet
-                Vector3 albedo = material.getColor(0, 0);
+                Vector3 albedo = material.getColor(bestHit.u, bestHit.v);
                 Vector3 lightDir = normalize(light.position - hit);
 
                 Real diffuse = std::max(dot(lightDir, bestHit.normal), 0.0);
