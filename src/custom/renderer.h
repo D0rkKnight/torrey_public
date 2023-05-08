@@ -145,7 +145,7 @@ namespace cu_utils
             }
         }
 
-        Vector3 getPixelColor(const Ray &ray, const Scene &scene, const BBNode &objRoot, int depth = 0)
+        Vector3 getPixelColor(const Ray &ray, const Scene &scene, const BBNode &objRoot, int depth = 0) const
         {
             auto bestHit = castRay(ray, scene.shapes, objRoot);
 
@@ -170,10 +170,10 @@ namespace cu_utils
                 case Mode::FLAT:
 
                 { // Get the material from the scene
-                    Material material = scene.materials[bestHit.sphere->material_id];
+                    Material *material = scene.materials[bestHit.sphere->material_id];
 
                     // Get the diffuse color from the mat
-                    Vector3 diffuseColor = material.flatColor;
+                    Vector3 diffuseColor = material->flatColor;
                     color = diffuseColor;
                 }
                 break;
@@ -181,7 +181,7 @@ namespace cu_utils
                 case Mode::LAMBERT:
 
                 { // Check every light in the scene
-                    color = lambert(ray, bestHit, scene, objRoot);
+                    color = lambert(this, ray, bestHit, scene, objRoot);
                 }
 
                 break;
@@ -189,24 +189,8 @@ namespace cu_utils
                 case Mode::MATTE_REFLECT:
                 {
                     // Might want to just feed this into the lambert equation
-                    Material material = scene.materials[bestHit.sphere->material_id];
-
-                    if (material.type == MaterialType::Diffuse || depth <= 0)
-                    {
-                        color = lambert(ray, bestHit, scene, objRoot);
-                    }
-                    else if (material.type == MaterialType::Mirror)
-                    {
-                        color = mirror(ray, bestHit, scene, objRoot, depth);
-                    }
-                    else if (material.type == MaterialType::Plastic)
-                    {
-                        color = plastic(ray, bestHit, scene, objRoot, depth);
-                    }
-                    // else if (material.type == MaterialType::Glass)
-                    // {
-                    //     color = glass(ray, bestHit, scene, objRoot, depth);
-                    // }
+                    Material *material = scene.materials[bestHit.sphere->material_id];
+                    color = material->shadePoint(this, ray, bestHit, scene, objRoot, depth);
                 }
                 break;
                 case Mode::BARYCENTRIC:
@@ -218,10 +202,10 @@ namespace cu_utils
                     }
                     else // Not a triangle, just render as flat
                     {
-                        Material material = scene.materials[bestHit.sphere->material_id];
+                        Material *material = scene.materials[bestHit.sphere->material_id];
 
                         // Get the diffuse color from the mat
-                        Vector3 diffuseColor = material.flatColor;
+                        Vector3 diffuseColor = material->flatColor;
                         color = diffuseColor;
                     }
                 }
@@ -237,7 +221,7 @@ namespace cu_utils
             return color;
         }
 
-        RayHit castRay(const Ray &ray, const vector<Shape *> &shapes, const BBNode &objRoot)
+        RayHit castRay(const Ray &ray, const vector<Shape *> &shapes, const BBNode &objRoot) const
         {
             // AABB Mode only behavior
             if (mode == Mode::AABB)
@@ -270,99 +254,6 @@ namespace cu_utils
             // std::cout << "Cull ratio: " << (Real)BBNode::boxesHit / (Real)BBNode::scansMade << std::endl;
 
             return bestHit;
-        }
-
-        Vector3 lambert(const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot)
-        {
-            Material material = scene.materials[bestHit.sphere->material_id];
-
-            Vector3 color = Vector3{0, 0, 0};
-            Vector3 hit = ray * bestHit.t;
-
-            for (const PointLight &light : scene.lights)
-            {
-                // Use 0 0 uv since we don't have the uv coord from the ray hit yet
-                Vector3 albedo = material.getColor(bestHit.u, bestHit.v);
-                Vector3 lightDir = normalize(light.position - hit);
-
-                Real diffuse = std::max(dot(lightDir, bestHit.normal), 0.0);
-                Vector3 contribution = albedo * diffuse;
-
-                contribution /= c_PI;
-
-                Real distSqrd = distance_squared(light.position, hit);
-                Vector3 attenuation = light.intensity / distSqrd;
-
-                contribution = Vector3{contribution.x * attenuation.x, contribution.y * attenuation.y, contribution.z * attenuation.z};
-
-                // Shadow cast
-                Ray shadowRay = Ray(hit, lightDir);
-                // Move the ray forward by 10^-4
-                shadowRay.origin += shadowRay.dir * 0.0001;
-
-                RayHit shadowHit = castRay(shadowRay, scene.shapes, objRoot);
-                if (shadowHit.hit && shadowHit.t < distance(light.position, hit))
-                {
-                    // If the shadow ray hit something, then it's in shadow
-                    contribution *= 0.0;
-                }
-
-                color += contribution;
-            }
-
-            return color;
-        }
-
-        Vector3 mirror(const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, int depth)
-        {
-            Material material = scene.materials[bestHit.sphere->material_id];
-
-            // Get the reflection direction
-            Vector3 hit = ray * bestHit.t;
-            Vector3 reflectDir = reflect(ray.dir, bestHit.normal);
-            Ray reflectRay = Ray(hit, reflectDir);
-
-            // Move the ray forward by 10^-4
-            reflectRay.origin += reflectRay.dir * 0.0001;
-
-            // Recurse
-            Vector3 albedo = material.getColor(bestHit.u, bestHit.v);
-            Vector3 fresnel = fresnelSchlick(albedo, bestHit.normal, reflectDir);
-
-            // TODO: Move most of this into a reflect function. Maybe use albedo for pure reflect and apply the fresnel filter for another function? Or just use a fresnel boolean toggle
-            return hadamard(fresnel, getPixelColor(reflectRay, scene, objRoot, depth - 1));
-        }
-
-        Vector3 plastic(const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, int depth)
-        {
-            Material material = scene.materials[bestHit.sphere->material_id];
-
-            // TODO: Make special reflect function and have fresnel use it
-
-            // Get the reflection direction
-            Vector3 hit = ray * bestHit.t;
-            Vector3 reflectDir = reflect(ray.dir, bestHit.normal);
-            Ray reflectRay = Ray(hit, reflectDir);
-
-            // Move the ray forward by 10^-4
-            reflectRay.origin += reflectRay.dir * 0.0001;
-            Vector3 albedo = material.getColor(bestHit.u, bestHit.v);
-
-            // Recurse
-            Vector3 fresnel = fresnelSchlick(albedo, bestHit.normal, reflectDir);
-            Vector3 reflectColor = getPixelColor(reflectRay, scene, objRoot, depth - 1);
-
-            // Get the diffuse color from the mat
-            // Lambert retrieves the albedo independently
-            Vector3 diffuseCol = lambert(ray, bestHit, scene, objRoot);
-
-            // Get the diffuse contribution
-            Vector3 diffuse = diffuseCol * (1.0 - fresnel);
-
-            // Get the specular contribution
-            Vector3 specular = hadamard(fresnel, reflectColor);
-
-            return diffuse + specular;
         }
     };
 

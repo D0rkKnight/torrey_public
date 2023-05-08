@@ -4,6 +4,7 @@
 #include "custom/camera.h"
 #include "custom/renderer.h"
 #include "custom/ray.h"
+#include "custom/materials.h"
 #include <iostream>
 #include <vector>
 
@@ -22,21 +23,22 @@ cu_utils::Scene biScene2cuScene(const Scene &hw1Scene)
     }
     for (const auto hw1Material : hw1Scene.materials)
     {
-        cu_utils::MaterialType type;
+        cu_utils::Material *mat;
         switch (hw1Material.type)
         {
         case hw1::MaterialType::Diffuse:
-            type = cu_utils::MaterialType::Diffuse;
+            mat = new cu_utils::LambertMaterial();
             break;
         case hw1::MaterialType::Mirror:
-            type = cu_utils::MaterialType::Mirror;
+            mat = new cu_utils::MirrorMaterial();
             break;
         default:
             // Throw an error
             new std::exception();
             break;
         }
-        cuScene.materials.push_back(cu_utils::Material(type, hw1Material.color));
+        mat->flatColor = hw1Material.color;
+        cuScene.materials.push_back(mat);
     }
     for (const auto hw1Light : hw1Scene.lights)
     {

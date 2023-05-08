@@ -50,4 +50,21 @@ namespace cu_utils
     {
         return f0 + (1 - f0) * pow(1 - dot(n, v), 5);
     }
+
+    /**
+     * @brief Returns reflect ray that is offset by epsilon
+     *
+     */
+    inline Ray getBounceRay(Ray ray, RayHit bestHit)
+    {
+        // Get the reflection direction
+        Vector3 hit = ray * bestHit.t;
+        Vector3 reflectDir = reflect(ray.dir, bestHit.normal);
+        Ray reflectRay = Ray(hit, reflectDir);
+
+        // Move the ray forward by 10^-4
+        reflectRay.origin += reflectRay.dir * 0.0001;
+
+        return reflectRay;
+    }
 }

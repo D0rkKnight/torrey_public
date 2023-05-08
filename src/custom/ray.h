@@ -3,7 +3,6 @@
  */
 #pragma once
 
-#include "utils.h"
 #include "../vector.h"
 
 namespace cu_utils

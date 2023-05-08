@@ -1,5 +1,7 @@
 #include "shapes.h"
+#include "utils.h"
 #include <iostream>
+#include <cmath>
 
 using namespace cu_utils;
 // using namespace std;

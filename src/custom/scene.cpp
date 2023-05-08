@@ -15,7 +15,9 @@ Scene Scene::defaultScene()
     scene.shapes.push_back(new Sphere(Vector3{0, 0, 2}, (Real)1.0, 0));
 
     // Create materials
-    scene.materials.push_back(Material(MaterialType::Diffuse, Vector3{1.0, 0.5, 0.5}));
+    Material *lambert = new LambertMaterial();
+    lambert->flatColor = Vector3{1.0, 0.5, 0.5};
+    scene.materials.push_back(lambert);
 
     return scene;
 }
@@ -24,7 +26,7 @@ Scene::Scene()
 {
     camera = AbstractCamera{Vector3{0, 0, 0}, Vector3{0, 0, 1}, Vector3{0, -1, 0}, (Real)90.0};
     shapes = std::vector<Shape *>();
-    materials = std::vector<Material>();
+    materials = std::vector<Material *>();
     textures = std::map<std::filesystem::path, Image3>();
 }
 
@@ -93,30 +95,32 @@ Scene::Scene(ParsedScene parsed)
     for (int i = 0; i < (int)parsed.materials.size(); i++)
     {
         ParsedMaterial parsedMaterial = parsed.materials[i];
-        Material material;
-        material.scene = this;
+        Material *material;
+        ParsedColor colSrc;
 
         if (auto diffuse = std::get_if<ParsedDiffuse>(&parsedMaterial))
         {
-            material.type = MaterialType::Diffuse;
-            assignParsedColor(&material, diffuse->reflectance);
+            material = new LambertMaterial();
+            colSrc = diffuse->reflectance;
         }
         else if (auto mirror = std::get_if<ParsedMirror>(&parsedMaterial))
         {
-            material.type = MaterialType::Mirror;
-            assignParsedColor(&material, mirror->reflectance);
+            material = new MirrorMaterial();
+            colSrc = mirror->reflectance;
         }
         else if (auto plastic = std::get_if<ParsedPlastic>(&parsedMaterial))
         {
-            material.type = MaterialType::Plastic;
-            assignParsedColor(&material, plastic->reflectance);
-            material.eta = plastic->eta;
+            material = new PlasticMaterial();
+            colSrc = plastic->reflectance;
+            material->eta = plastic->eta;
         }
         else
         {
             std::cerr << "Unknown material type" << std::endl;
             continue;
         }
+        material->scene = this;
+        assignParsedColor(material, colSrc);
         materials.push_back(material);
     }
 
@@ -157,23 +161,8 @@ void Scene::addTexture(ParsedImageTexture *image_texture)
     }
 }
 
-Material::Material()
-{
-    type = MaterialType::Diffuse;
-    flatColor = Vector3{1.0, 1.0, 1.0};
-    texMeta = nullptr;
-    scene = nullptr;
-}
-
-Material::Material(MaterialType type, Vector3 flatColor)
-{
-    Material();
-    this->type = type;
-    this->flatColor = flatColor;
-}
-
 // TODO: Move this to the material src probably
-Vector3 Material::getColor(Real u, Real v)
+Vector3 Material::getTexColor(Real u, Real v)
 {
 
     if (texMeta == nullptr)

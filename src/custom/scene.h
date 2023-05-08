@@ -6,36 +6,11 @@
 #include <map>
 #include "shapes.h"
 #include "../parse_scene.h"
+#include "materials.h"
 
 namespace cu_utils
 {
     class Scene;
-
-    enum class MaterialType
-    {
-        Diffuse,
-        Mirror,
-        Plastic
-    };
-
-    struct Material
-    {
-        MaterialType type;
-        Vector3 flatColor;
-        Scene *scene;
-
-        // Just for plastics
-        Real eta;
-
-        // Can have a backing image texture.
-        ParsedImageTexture *texMeta;
-
-        Material();
-        Material(MaterialType type, Vector3 flatColor);
-
-        Vector3 getColor(Real u, Real v);
-        void loadTexture(ParsedImageTexture *texMeta);
-    };
 
     struct PointLight
     {
@@ -56,7 +31,7 @@ namespace cu_utils
     {
         AbstractCamera camera;
         std::vector<Shape *> shapes;
-        std::vector<Material> materials;
+        std::vector<Material *> materials;
         std::vector<PointLight> lights;
 
         std::map<std::filesystem::path, Image3> textures;
