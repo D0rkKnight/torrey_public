@@ -326,14 +326,18 @@ namespace cu_utils
             reflectRay.origin += reflectRay.dir * 0.0001;
 
             // Recurse
-            Vector3 fresnel = fresnelSchlick(material.flatColor, bestHit.normal, reflectDir);
+            Vector3 albedo = material.getColor(bestHit.u, bestHit.v);
+            Vector3 fresnel = fresnelSchlick(albedo, bestHit.normal, reflectDir);
 
+            // TODO: Move most of this into a reflect function. Maybe use albedo for pure reflect and apply the fresnel filter for another function? Or just use a fresnel boolean toggle
             return hadamard(fresnel, getPixelColor(reflectRay, scene, objRoot, depth - 1));
         }
 
         Vector3 plastic(const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, int depth)
         {
             Material material = scene.materials[bestHit.sphere->material_id];
+
+            // TODO: Make special reflect function and have fresnel use it
 
             // Get the reflection direction
             Vector3 hit = ray * bestHit.t;
@@ -346,13 +350,14 @@ namespace cu_utils
 
             // Recurse
             Vector3 fresnel = fresnelSchlick(albedo, bestHit.normal, reflectDir);
-
             Vector3 reflectColor = getPixelColor(reflectRay, scene, objRoot, depth - 1);
 
             // Get the diffuse color from the mat
+            // Lambert retrieves the albedo independently
+            Vector3 diffuseCol = lambert(ray, bestHit, scene, objRoot);
 
             // Get the diffuse contribution
-            Vector3 diffuse = albedo * (1.0 - fresnel);
+            Vector3 diffuse = diffuseCol * (1.0 - fresnel);
 
             // Get the specular contribution
             Vector3 specular = hadamard(fresnel, reflectColor);
