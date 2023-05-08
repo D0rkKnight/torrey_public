@@ -99,26 +99,18 @@ Scene::Scene(ParsedScene parsed)
         if (auto diffuse = std::get_if<ParsedDiffuse>(&parsedMaterial))
         {
             material.type = MaterialType::Diffuse;
-            if (auto rgb = std::get_if<Vector3>(&diffuse->reflectance))
-            {
-                material.flatColor = *rgb;
-            }
-            else if (auto image_texture = std::get_if<ParsedImageTexture>(&diffuse->reflectance))
-            {
-                material.loadTexture(image_texture);
-            }
+            assignParsedColor(&material, diffuse->reflectance);
         }
         else if (auto mirror = std::get_if<ParsedMirror>(&parsedMaterial))
         {
             material.type = MaterialType::Mirror;
-            if (auto rgb = std::get_if<Vector3>(&mirror->reflectance))
-            {
-                material.flatColor = *rgb;
-            }
-            else if (auto image_texture = std::get_if<ParsedImageTexture>(&mirror->reflectance))
-            {
-                material.loadTexture(image_texture);
-            }
+            assignParsedColor(&material, mirror->reflectance);
+        }
+        else if (auto plastic = std::get_if<ParsedPlastic>(&parsedMaterial))
+        {
+            material.type = MaterialType::Plastic;
+            assignParsedColor(&material, plastic->reflectance);
+            material.eta = plastic->eta;
         }
         else
         {
@@ -227,4 +219,16 @@ void Material::loadTexture(ParsedImageTexture *image_texture)
     texMeta = new ParsedImageTexture(*image_texture);
 
     scene->addTexture(image_texture);
+}
+
+void cu_utils::assignParsedColor(Material *material, ParsedColor color)
+{
+    if (auto rgb = std::get_if<Vector3>(&color))
+    {
+        material->flatColor = *rgb;
+    }
+    else if (auto image_texture = std::get_if<ParsedImageTexture>(&color))
+    {
+        material->loadTexture(image_texture);
+    }
 }

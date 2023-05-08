@@ -45,4 +45,9 @@ namespace cu_utils
     {
         return Vector3{a.x * b.x, a.y * b.y, a.z * b.z};
     }
+
+    inline Vector3 fresnelSchlick(const Vector3 &f0, const Vector3 &n, const Vector3 &v)
+    {
+        return f0 + (1 - f0) * pow(1 - dot(n, v), 5);
+    }
 }

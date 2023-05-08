@@ -14,7 +14,8 @@ namespace cu_utils
     enum class MaterialType
     {
         Diffuse,
-        Mirror
+        Mirror,
+        Plastic
     };
 
     struct Material
@@ -22,6 +23,9 @@ namespace cu_utils
         MaterialType type;
         Vector3 flatColor;
         Scene *scene;
+
+        // Just for plastics
+        Real eta;
 
         // Can have a backing image texture.
         ParsedImageTexture *texMeta;
@@ -64,4 +68,6 @@ namespace cu_utils
 
         void addTexture(ParsedImageTexture *texMeta);
     };
+
+    void assignParsedColor(Material *material, ParsedColor color);
 }
