@@ -71,9 +71,37 @@ BoundingBox Sphere::getBoundingBox() const
 
 std::vector<Ray> Sphere::sampleSurface(int samples, std::vector<Real> &jacobians, pcg32_state &rng) const
 {
-    std::cerr << "Sphere::sampleSurface not implemented" << std::endl;
 
-    return std::vector<Ray>();
+    std::vector<Ray> rays;
+    jacobians.clear();
+
+    // Sample points on the unit sphere
+    for (int i = 0; i < samples; i++)
+    {
+        Real u1 = next_pcg32_real<Real>(rng);
+        Real u2 = next_pcg32_real<Real>(rng);
+
+        Real theta = acos(1 - 2 * u1);
+        Real phi = 2 * M_PI * u2;
+
+        Real x = sin(theta) * cos(phi);
+        Real y = sin(theta) * sin(phi);
+        Real z = cos(theta);
+
+        Vector3 dir = Vector3(x, y, z);
+
+        // Compute jacobian
+        Real jacobian = 4 * M_PI * this->radius * this->radius;
+
+        // Create ray
+        Ray ray = Ray(center, dir);
+
+        // Add to list
+        rays.push_back(ray);
+        jacobians.push_back(jacobian);
+    }
+
+    return rays;
 }
 
 Triangle::Triangle(Vector3 v0, Vector3 v1, Vector3 v2, int material_id)
