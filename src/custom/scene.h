@@ -18,6 +18,14 @@ namespace cu_utils
         Vector3 position;
     };
 
+    struct AreaLight
+    {
+        Vector3 intensity;
+        std::vector<Shape *> shapes;
+
+        AreaLight(Vector3 intensity);
+    };
+
     // We don't know the aspect ratio until render time so we can't use a full camera object.
     struct AbstractCamera
     {
@@ -33,11 +41,12 @@ namespace cu_utils
         std::vector<Shape *> shapes;
         std::vector<Material *> materials;
         std::vector<PointLight> lights;
+        std::vector<AreaLight *> areaLights;
 
         std::map<std::filesystem::path, Image3> textures;
 
         Scene();
-        Scene(ParsedScene parsedScene);
+        Scene(const ParsedScene &parsedScene);
 
         static Scene defaultScene();
 

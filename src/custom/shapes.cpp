@@ -1,7 +1,9 @@
 #include "shapes.h"
 #include "utils.h"
+#include "pcg.h"
 #include <iostream>
 #include <cmath>
+#include <vector.h>
 
 using namespace cu_utils;
 // using namespace std;
@@ -59,11 +61,19 @@ Sphere::Sphere(Vector3 center, Real radius, int material_id)
     this->center = center;
     this->radius = radius;
     this->material_id = material_id;
+    this->areaLight = nullptr;
 }
 
 BoundingBox Sphere::getBoundingBox() const
 {
     return BoundingBox(center - Vector3(1, 1, 1) * radius, center + Vector3(1, 1, 1) * radius);
+}
+
+std::vector<Ray> Sphere::sampleSurface(int samples, std::vector<Real> &jacobians, pcg32_state &rng) const
+{
+    std::cerr << "Sphere::sampleSurface not implemented" << std::endl;
+
+    return std::vector<Ray>();
 }
 
 Triangle::Triangle(Vector3 v0, Vector3 v1, Vector3 v2, int material_id)
@@ -72,6 +82,7 @@ Triangle::Triangle(Vector3 v0, Vector3 v1, Vector3 v2, int material_id)
     this->v1 = v1;
     this->v2 = v2;
     this->material_id = material_id;
+    this->areaLight = nullptr;
 
     // Set uvs so the uv of a hit is just the barycentric coordinates
     uv0 = Vector2(0, 0);
@@ -161,9 +172,46 @@ BoundingBox Triangle::getBoundingBox() const
     return BoundingBox(minv, maxv);
 }
 
+std::vector<Ray> Triangle::sampleSurface(int samples, std::vector<Real> &jacobians, pcg32_state &rng) const
+{
+    std::vector<Ray> rays = std::vector<Ray>();
+    jacobians = std::vector<Real>(samples);
+
+    // Sample the triangle's surface
+    for (int i = 0; i < samples; i++)
+    {
+        // Sample barycentric coordinates
+        Real u1 = next_pcg32_real<Real>(rng);
+        Real u2 = next_pcg32_real<Real>(rng);
+
+        Real b1 = 1 - sqrt(u1);
+        Real b2 = sqrt(u1) * u2;
+
+        // Compute the point on the triangle
+        Vector3 p = b2 * v2 + b1 * v1 + (1 - b1 - b2) * v0;
+
+        // Get geometric normal as well
+        Vector3 n = normalize(cross(v1 - v0, v2 - v0));
+
+        rays.push_back(Ray(p, n));
+
+        // Area of the triangle
+        jacobians[i] = length<Real>(cross(v1 - v0, v2 - v0)) / 2;
+    }
+
+    return rays;
+}
+
 void Triangle::setUVs(Vector2 uv0, Vector2 uv1, Vector2 uv2)
 {
     this->uv0 = uv0;
     this->uv1 = uv1;
     this->uv2 = uv2;
+}
+
+std::vector<Ray> Shape::sampleSurface(int samples, std::vector<Real> &jacobians, pcg32_state &rng) const
+{
+    std::cerr << "Shape::sampleSurface is illegal to call" << std::endl;
+
+    return std::vector<Ray>();
 }

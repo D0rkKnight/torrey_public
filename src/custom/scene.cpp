@@ -28,9 +28,11 @@ Scene::Scene()
     shapes = std::vector<Shape *>();
     materials = std::vector<Material *>();
     textures = std::map<std::filesystem::path, Image3>();
+
+    areaLights = std::vector<AreaLight *>();
 }
 
-Scene::Scene(ParsedScene parsed)
+Scene::Scene(const ParsedScene &parsed)
 {
     // Invoke base constructor
     Scene();
@@ -39,15 +41,33 @@ Scene::Scene(ParsedScene parsed)
     camera = AbstractCamera{parsed.camera.lookfrom, parsed.camera.lookat, parsed.camera.up, parsed.camera.vfov};
 
     // Copy shapes
+    std::map<int, std::vector<Shape *>> shapesByShapeID;
+
     for (int i = 0; i < (int)parsed.shapes.size(); i++)
     {
         ParsedShape parsedShape = parsed.shapes[i];
         int matID = get_material_id(parsedShape);
 
+        std::vector<Shape *> idGrp = std::vector<Shape *>();
+
         if (auto sphere = std::get_if<ParsedSphere>(&parsedShape))
         {
             Shape *shape = new Sphere(sphere->position, sphere->radius, matID);
+
+            // Write in area light
+            // TODO: Extract to function
+            // const int areaLightID = get_area_light_id(parsedShape);
+            // if (areaLightID >= 0)
+            // {
+            //     // This is an area light
+            //     const ParsedLight light = parsed.lights[areaLightID];
+            //     auto *areaLight = std::get_if<ParsedDiffuseAreaLight>(&light);
+
+            //     shape->areaLight = areaLight;
+            // }
+
             shapes.push_back(shape);
+            idGrp.push_back(shape);
         }
         else if (auto mesh = std::get_if<ParsedTriangleMesh>(&parsedShape))
         {
@@ -80,7 +100,21 @@ Scene::Scene(ParsedScene parsed)
                     tri->n2 = n2;
                 }
 
+                // TODO: Extract to function
+                // TODO: Need to store duplicates in some area light cache.
+                // TODO: Area light cache should have wrapper object that holds a list of subscribed shapes.
+                // const int areaLightID = get_area_light_id(parsedShape);
+                // if (areaLightID >= 0)
+                // {
+                //     // This is an area light
+                //     const ParsedLight light = parsed.lights[areaLightID];
+                //     auto *areaLight = std::get_if<ParsedDiffuseAreaLight>(&light);
+
+                //     tri->areaLight = areaLight;
+                // }
+
                 shapes.push_back(tri);
+                idGrp.push_back(tri);
             }
         }
         else
@@ -88,7 +122,8 @@ Scene::Scene(ParsedScene parsed)
             std::cerr << "Unknown shape type" << std::endl;
             continue;
         }
-        // set_area_light_id(shape, parsedShape.area_light_id); Dunno what an area light id is
+
+        shapesByShapeID[i] = idGrp;
     }
 
     // Copy materials
@@ -128,25 +163,33 @@ Scene::Scene(ParsedScene parsed)
     for (int i = 0; i < (int)parsed.lights.size(); i++)
     {
         ParsedLight parsedLight = parsed.lights[i];
-        PointLight light;
         if (auto point_light = std::get_if<ParsedPointLight>(&parsedLight))
         {
+            PointLight light;
             light.position = point_light->position;
             light.intensity = point_light->intensity;
+
+            lights.push_back(light);
         }
         else if (auto diffuse_area_light = std::get_if<ParsedDiffuseAreaLight>(&parsedLight))
         {
-            // light.position = shapes[diffuse_area_light->shape_id]->sample_surface();
-            // light.intensity = diffuse_area_light->radiance;
+            AreaLight *area = new AreaLight(diffuse_area_light->radiance);
+            area->shapes = shapesByShapeID[diffuse_area_light->shape_id];
 
-            std::cerr << "Diffuse area lights not supported" << std::endl;
+            // Assign back-refs for shapes
+            for (Shape *shape : area->shapes)
+            {
+                shape->areaLight = area;
+            }
+
+            // Pass by value, it's a light structure anyways
+            areaLights.push_back(area);
         }
         else
         {
             std::cerr << "Unknown light type" << std::endl;
             continue;
         }
-        lights.push_back(light);
     }
 }
 
@@ -220,4 +263,10 @@ void cu_utils::assignParsedColor(Material *material, ParsedColor color)
     {
         material->loadTexture(image_texture);
     }
+}
+
+AreaLight::AreaLight(Vector3 intensity)
+{
+    this->intensity = intensity;
+    this->shapes = std::vector<Shape *>();
 }

@@ -8,7 +8,7 @@
 
 using namespace cu_utils;
 
-Vector3 cu_utils::lambert(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot)
+Vector3 cu_utils::lambert(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng)
 {
     Material *material = scene.materials[bestHit.sphere->material_id];
 
@@ -46,10 +46,64 @@ Vector3 cu_utils::lambert(const Renderer *renderer, const Ray ray, const RayHit 
         color += contribution;
     }
 
+    // Do the same for area lights
+    for (const AreaLight *light : scene.areaLights)
+    {
+        for (const Shape *emitter : light->shapes)
+        {
+            // Get a bunch of samples from the shape
+            int samples = 10;
+            std::vector<Real> jacobians;
+            std::vector<Ray> rays = emitter->sampleSurface(samples, jacobians, rng);
+
+            Vector3 contribution = Vector3{0, 0, 0};
+            for (int i = 0; i < rays.size(); i++)
+            {
+                Ray lightRay = rays[i];
+                Real jacobian = jacobians[i];
+
+                // Move the ray forward by 10^-4 for shadow cast
+                Vector3 hit2light = lightRay.origin - hit;
+
+                Ray shadowRay = Ray(hit, normalize(hit2light));
+                shadowRay.origin += shadowRay.dir * 0.0001;
+
+                RayHit shadowHit = renderer->castRay(shadowRay, scene.shapes, objRoot);
+
+                // Take epsilon off both ends of the ray cast
+                if (shadowHit.hit && shadowHit.t < length(hit2light) - 0.0001 * 2)
+                {
+                    // If the shadow ray hit something, then it's in shadow
+                    continue;
+                }
+
+                Vector3 albedo = material->getTexColor(bestHit.u, bestHit.v);
+                Real localNormalAlign = dot(normalize(hit2light), bestHit.normal);
+
+                // If the light is facing the wrong way, don't add it
+                if (localNormalAlign < 0)
+                {
+                    continue;
+                }
+
+                // Get the light color
+                Vector3 lightColor = light->intensity;
+
+                Real lightDistSqrd = distance_squared(lightRay.origin, hit);
+                Real lightNormalAlign = dot(normalize(hit2light), -lightRay.dir);
+
+                // Bring it all together
+                contribution += hadamard(albedo, lightColor) * localNormalAlign * lightNormalAlign / lightDistSqrd * jacobian / M_PI;
+            }
+            contribution = contribution / (Real)samples;
+            color += contribution;
+        }
+    }
+
     return color;
 }
 
-Vector3 cu_utils::mirror(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, int depth)
+Vector3 cu_utils::mirror(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth)
 {
     Material *material = scene.materials[bestHit.sphere->material_id];
 
@@ -59,10 +113,10 @@ Vector3 cu_utils::mirror(const Renderer *renderer, const Ray ray, const RayHit b
     Vector3 albedo = material->getTexColor(bestHit.u, bestHit.v);
     Vector3 fresnel = fresnelSchlick(albedo, bestHit.normal, reflectRay.dir);
 
-    return hadamard(fresnel, renderer->getPixelColor(reflectRay, scene, objRoot, depth - 1));
+    return hadamard(fresnel, renderer->getPixelColor(reflectRay, scene, objRoot, rng, depth - 1));
 }
 
-Vector3 cu_utils::plastic(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, int depth)
+Vector3 cu_utils::plastic(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth)
 {
     Material *material = scene.materials[bestHit.sphere->material_id];
 
@@ -72,11 +126,11 @@ Vector3 cu_utils::plastic(const Renderer *renderer, const Ray ray, const RayHit 
 
     // Recurse
     Vector3 fresnel = fresnelSchlick(albedo, bestHit.normal, reflectRay.dir);
-    Vector3 reflectColor = renderer->getPixelColor(reflectRay, scene, objRoot, depth - 1);
+    Vector3 reflectColor = renderer->getPixelColor(reflectRay, scene, objRoot, rng, depth - 1);
 
     // Get the diffuse color from the mat
     // Lambert retrieves the albedo independently
-    Vector3 diffuseCol = lambert(renderer, ray, bestHit, scene, objRoot);
+    Vector3 diffuseCol = lambert(renderer, ray, bestHit, scene, objRoot, rng);
 
     // Get the diffuse contribution
     Vector3 diffuse = diffuseCol * (1.0 - fresnel);
@@ -88,29 +142,29 @@ Vector3 cu_utils::plastic(const Renderer *renderer, const Ray ray, const RayHit 
 }
 
 // Write in material methods
-Vector3 cu_utils::Material::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, int depth) const
+Vector3 cu_utils::Material::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth) const
 {
     std::cerr << "Material::shadePoint() called, this should never happen\n"
               << std::endl;
     return Vector3{0, 0, 0};
 }
 
-Vector3 cu_utils::LambertMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, int depth = 0) const
+Vector3 cu_utils::LambertMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth = 0) const
 {
-    return lambert(renderer, ray, bestHit, scene, objRoot);
+    return lambert(renderer, ray, bestHit, scene, objRoot, rng);
 }
 
-Vector3 cu_utils::MirrorMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, int depth = 0) const
+Vector3 cu_utils::MirrorMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth = 0) const
 {
     if (depth <= 0)
-        return lambert(renderer, ray, bestHit, scene, objRoot);
+        return lambert(renderer, ray, bestHit, scene, objRoot, rng);
 
-    return mirror(renderer, ray, bestHit, scene, objRoot, depth);
+    return mirror(renderer, ray, bestHit, scene, objRoot, rng, depth);
 }
 
-Vector3 cu_utils::PlasticMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, int depth = 0) const
+Vector3 cu_utils::PlasticMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth = 0) const
 {
-    return plastic(renderer, ray, bestHit, scene, objRoot, depth);
+    return plastic(renderer, ray, bestHit, scene, objRoot, rng, depth);
 }
 
 // Constructors

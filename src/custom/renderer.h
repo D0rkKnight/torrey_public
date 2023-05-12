@@ -95,11 +95,14 @@ namespace cu_utils
                             int y0 = tile[1] * tile_size;
                             int y1 = std::min(y0 + tile_size, img.height);
 
+                            // Initialize pcg random number generator
+                            pcg32_state rng = init_pcg32(1, seed);
+
                             // Render step
                             for (int y = y0; y < y1; y++) {
                             for (int x = x0; x < x1; x++) {
                                 
-                                img(x,y) = renderPixel(img, scene, root, x, y, seed);
+                                img(x,y) = renderPixel(img, scene, root, x, y, rng);
                             }
                             } 
                             
@@ -109,7 +112,7 @@ namespace cu_utils
             reporter.done();
         }
 
-        Vector3 renderPixel(Image3 &img, const Scene &scene, BBNode &objRoot, int x, int y, int seed = 0)
+        Vector3 renderPixel(Image3 &img, const Scene &scene, BBNode &objRoot, int x, int y, pcg32_state &rng)
         {
             // Build better camera with scene data
             Camera cam = CameraBuilder(img.width, img.height)
@@ -123,15 +126,13 @@ namespace cu_utils
             if (spp == 1)
             {
                 Ray ray = cam.ScToWRay(x + 0.5, y + 0.5);
-                return getPixelColor(ray, scene, objRoot, maxDepth);
+                return getPixelColor(ray, scene, objRoot, rng, maxDepth);
             }
 
             else
             {
                 // Shoot multiple rays per pixel
                 Vector3 color = Vector3{0, 0, 0};
-                // Initialize pcg random number generator
-                pcg32_state rng = init_pcg32(1, seed);
 
                 for (int i = 0; i < spp; i++)
                 {
@@ -139,13 +140,13 @@ namespace cu_utils
                     Real offX = next_pcg32_real<Real>(rng);
                     Real offY = next_pcg32_real<Real>(rng);
                     Ray ray = cam.ScToWRay(x + offX, y + offY);
-                    color += getPixelColor(ray, scene, objRoot, maxDepth);
+                    color += getPixelColor(ray, scene, objRoot, rng, maxDepth);
                 }
                 return color / (Real)spp;
             }
         }
 
-        Vector3 getPixelColor(const Ray &ray, const Scene &scene, const BBNode &objRoot, int depth = 0) const
+        Vector3 getPixelColor(const Ray &ray, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth = 0) const
         {
             auto bestHit = castRay(ray, scene.shapes, objRoot);
 
@@ -181,16 +182,26 @@ namespace cu_utils
                 case Mode::LAMBERT:
 
                 { // Check every light in the scene
-                    color = lambert(this, ray, bestHit, scene, objRoot);
+                    color = lambert(this, ray, bestHit, scene, objRoot, rng);
                 }
 
                 break;
 
                 case Mode::MATTE_REFLECT:
                 {
-                    // Might want to just feed this into the lambert equation
-                    Material *material = scene.materials[bestHit.sphere->material_id];
-                    color = material->shadePoint(this, ray, bestHit, scene, objRoot, depth);
+
+                    // If the object has an area light and the geometric normal is correct, just return the light color
+                    // TODO: Don't emit on back faces
+                    // Have rayHit also store a geometric normal
+                    if (bestHit.sphere->areaLight != nullptr && dot(bestHit.normal, ray.dir) < 0)
+                    {
+                        color = bestHit.sphere->areaLight->intensity;
+                    }
+                    else
+                    {
+                        Material *material = scene.materials[bestHit.sphere->material_id];
+                        color = material->shadePoint(this, ray, bestHit, scene, objRoot, rng, depth);
+                    }
                 }
                 break;
                 case Mode::BARYCENTRIC:
