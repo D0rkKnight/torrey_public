@@ -126,13 +126,14 @@ Triangle::Triangle(Vector3 v0, Vector3 v1, Vector3 v2, int material_id)
 RayHit Triangle::checkHit(const Ray &ray) const
 {
     // Borrowed from RT in One Weekend
-    Vector3 e1 = v1 - v0;
-    Vector3 e2 = v2 - v0;
+    Vector3 e1 = v1 - v0; // v0 -> v1
+    Vector3 e2 = v2 - v0; // v0 -> v2
     Vector3 h = cross(ray.dir, e2);
     Real a = dot(e1, h);
 
-    if (a > -0.00001 && a < 0.00001)
-        return RayHit(); // Ray is parallel to triangle
+    // This code was causing bugs for some reason idk why
+    // if (a > -0.00001 && a < 0.00001)
+    //     return RayHit(); // Ray is parallel to triangle
 
     Real f = 1 / a;
     Vector3 s = ray.origin - v0;
@@ -150,15 +151,15 @@ RayHit Triangle::checkHit(const Ray &ray) const
     // At this point, the ray hits the triangle
     Real t = f * dot(e2, q);
 
+    if (t <= 0)
+        return RayHit(); // Triangle is behind the camera
+
     // n is the weighted average of the triangle's normals
     Vector3 n = normalize(n0 + u * (n1 - n0) + v * (n2 - n0));
 
     // Return the normal facing the ray
     if (dot(n, ray.dir) > 0)
         n = -n;
-
-    if (t <= 0)
-        return RayHit(); // Triangle is behind the camera
 
     // Use barycentric
     Vector3 bary = getBarycentric(ray, RayHit(true, t, this, n, 0, 0));
