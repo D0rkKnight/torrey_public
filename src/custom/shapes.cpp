@@ -32,6 +32,7 @@ RayHit Sphere::checkHit(const Ray &ray) const
         Real u = phi / (2 * M_PI);
         Real v = theta / M_PI;
 
+        bool backface = false;
         if (t <= 0)
         {
             // Check the further hit point
@@ -39,6 +40,7 @@ RayHit Sphere::checkHit(const Ray &ray) const
 
             // normal is pointing the other way in this case
             n = -normalize(ray * t - center);
+            backface = true;
         }
 
         // Both potential hit points are behind the camera, invalid.
@@ -46,7 +48,7 @@ RayHit Sphere::checkHit(const Ray &ray) const
             return RayHit();
 
         // Valid rayhit found, returning
-        RayHit hit = RayHit(true, t, this, n, u, v);
+        RayHit hit = RayHit(true, t, this, n, u, v, backface);
 
         return hit;
     }
@@ -94,7 +96,7 @@ std::vector<Ray> Sphere::sampleSurface(int samples, std::vector<Real> &jacobians
         Real jacobian = 4 * M_PI * this->radius * this->radius;
 
         // Create ray
-        Ray ray = Ray(center, dir);
+        Ray ray = Ray(center + dir * radius, dir);
 
         // Add to list
         rays.push_back(ray);
@@ -158,16 +160,20 @@ RayHit Triangle::checkHit(const Ray &ray) const
     Vector3 n = normalize(n0 + u * (n1 - n0) + v * (n2 - n0));
 
     // Return the normal facing the ray
+    bool backface = false;
     if (dot(n, ray.dir) > 0)
+    {
         n = -n;
+        backface = true;
+    }
 
     // Use barycentric
-    Vector3 bary = getBarycentric(ray, RayHit(true, t, this, n, 0, 0));
+    Vector3 bary = getBarycentric(ray, RayHit(true, t, this, n, 0, 0, backface));
 
     // Interpolate UVs
     Vector2 uv = bary.x * uv0 + bary.y * uv1 + bary.z * uv2;
 
-    return RayHit(true, t, this, n, uv.x, uv.y);
+    return RayHit(true, t, this, n, uv.x, uv.y, backface);
 }
 
 Vector3 Triangle::getBarycentric(const Ray &ray, const RayHit &hit) const

@@ -191,9 +191,7 @@ namespace cu_utils
                 {
 
                     // If the object has an area light and the geometric normal is correct, just return the light color
-                    // TODO: Don't emit on back faces
-                    // Have rayHit also store a geometric normal
-                    if (bestHit.sphere->areaLight != nullptr && dot(bestHit.normal, ray.dir) < 0)
+                    if (bestHit.sphere->areaLight != nullptr && !bestHit.backface)
                     {
                         color = bestHit.sphere->areaLight->intensity;
                     }
@@ -249,7 +247,7 @@ namespace cu_utils
 
                     // Some unique AABB behavior
                     // Just dump out a dummy hit for the AABB renderer
-                    return RayHit{true, 1, shape, Vector3{0, 0, 0}, 0, 0};
+                    return RayHit{true, 1, shape, Vector3{0, 0, 0}, 0, 0, false};
                 }
 
                 return bestHit;
