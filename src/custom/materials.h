@@ -47,7 +47,8 @@ namespace cu_utils
         Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth) const override;
     };
 
-    Vector3 lambert(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng);
+    Vector3 matte(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng);
     Vector3 mirror(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth);
     Vector3 plastic(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth);
+
 }

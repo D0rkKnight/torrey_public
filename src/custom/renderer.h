@@ -182,7 +182,7 @@ namespace cu_utils
                 case Mode::LAMBERT:
 
                 { // Check every light in the scene
-                    color = lambert(this, ray, bestHit, scene, objRoot, rng);
+                    color = matte(this, ray, bestHit, scene, objRoot, rng);
                 }
 
                 break;

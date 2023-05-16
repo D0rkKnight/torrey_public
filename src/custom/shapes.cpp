@@ -71,39 +71,28 @@ BoundingBox Sphere::getBoundingBox() const
     return BoundingBox(center - Vector3(1, 1, 1) * radius, center + Vector3(1, 1, 1) * radius);
 }
 
-std::vector<Ray> Sphere::sampleSurface(int samples, std::vector<Real> &jacobians, pcg32_state &rng) const
+Ray Sphere::sampleSurface(int samples, Real &jacobian, pcg32_state &rng) const
 {
-
-    std::vector<Ray> rays;
-    jacobians.clear();
-
     // Sample points on the unit sphere
-    for (int i = 0; i < samples; i++)
-    {
-        Real u1 = next_pcg32_real<Real>(rng);
-        Real u2 = next_pcg32_real<Real>(rng);
+    Real u1 = next_pcg32_real<Real>(rng);
+    Real u2 = next_pcg32_real<Real>(rng);
 
-        Real theta = acos(1 - 2 * u1);
-        Real phi = 2 * M_PI * u2;
+    Real theta = acos(1 - 2 * u1);
+    Real phi = 2 * M_PI * u2;
 
-        Real x = sin(theta) * cos(phi);
-        Real y = sin(theta) * sin(phi);
-        Real z = cos(theta);
+    Real x = sin(theta) * cos(phi);
+    Real y = sin(theta) * sin(phi);
+    Real z = cos(theta);
 
-        Vector3 dir = Vector3(x, y, z);
+    Vector3 dir = Vector3(x, y, z);
 
-        // Compute jacobian
-        Real jacobian = 4 * M_PI * this->radius * this->radius;
+    // Compute jacobian
+    jacobian = 4 * M_PI * this->radius * this->radius;
 
-        // Create ray
-        Ray ray = Ray(center + dir * radius, dir);
-
-        // Add to list
-        rays.push_back(ray);
-        jacobians.push_back(jacobian);
-    }
-
-    return rays;
+    // Create ray
+    Ray ray = Ray(center + dir * radius, dir);
+    
+    return ray;
 }
 
 Triangle::Triangle(Vector3 v0, Vector3 v1, Vector3 v2, int material_id)
@@ -207,34 +196,26 @@ BoundingBox Triangle::getBoundingBox() const
     return BoundingBox(minv, maxv);
 }
 
-std::vector<Ray> Triangle::sampleSurface(int samples, std::vector<Real> &jacobians, pcg32_state &rng) const
+Ray Triangle::sampleSurface(int samples, Real &jacobian, pcg32_state &rng) const
 {
-    std::vector<Ray> rays = std::vector<Ray>();
-    jacobians = std::vector<Real>(samples);
+    // Sample barycentric coordinates
+    Real u1 = next_pcg32_real<Real>(rng);
+    Real u2 = next_pcg32_real<Real>(rng);
 
-    // Sample the triangle's surface
-    for (int i = 0; i < samples; i++)
-    {
-        // Sample barycentric coordinates
-        Real u1 = next_pcg32_real<Real>(rng);
-        Real u2 = next_pcg32_real<Real>(rng);
+    Real b1 = 1 - sqrt(u1);
+    Real b2 = sqrt(u1) * u2;
 
-        Real b1 = 1 - sqrt(u1);
-        Real b2 = sqrt(u1) * u2;
+    // Compute the point on the triangle
+    Vector3 p = b2 * v2 + b1 * v1 + (1 - b1 - b2) * v0;
 
-        // Compute the point on the triangle
-        Vector3 p = b2 * v2 + b1 * v1 + (1 - b1 - b2) * v0;
+    // Get geometric normal as well
+    Vector3 n = normalize(cross(v1 - v0, v2 - v0));
 
-        // Get geometric normal as well
-        Vector3 n = normalize(cross(v1 - v0, v2 - v0));
 
-        rays.push_back(Ray(p, n));
+    // Area of the triangle
+    jacobian = length<Real>(cross(v1 - v0, v2 - v0)) / 2;
 
-        // Area of the triangle
-        jacobians[i] = length<Real>(cross(v1 - v0, v2 - v0)) / 2;
-    }
-
-    return rays;
+    return Ray(p, n);
 }
 
 void Triangle::setUVs(Vector2 uv0, Vector2 uv1, Vector2 uv2)
@@ -244,9 +225,9 @@ void Triangle::setUVs(Vector2 uv0, Vector2 uv1, Vector2 uv2)
     this->uv2 = uv2;
 }
 
-std::vector<Ray> Shape::sampleSurface(int samples, std::vector<Real> &jacobians, pcg32_state &rng) const
+Ray Shape::sampleSurface(int samples, Real &jacobian, pcg32_state &rng) const
 {
     std::cerr << "Shape::sampleSurface is illegal to call" << std::endl;
 
-    return std::vector<Ray>();
+    return Ray(Vector3(), Vector3());
 }
