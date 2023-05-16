@@ -51,8 +51,8 @@ Vector3 cu_utils::lambert(const Renderer *renderer, const Ray ray, const RayHit 
     {
         for (const Shape *emitter : light->shapes)
         {
-            // Get a bunch of samples from the shape
-            int samples = 10;
+            // Get a bunch of samples from the shape (this is the branching factor for the render)
+            int samples = 1;
             std::vector<Real> jacobians;
             std::vector<Ray> rays = emitter->sampleSurface(samples, jacobians, rng);
 

@@ -1,0 +1,9 @@
+1. Move env to hddev (required for gdb, valgrind)
+2. Setup Copilot chat on hddev
+3. Profile program
+4. Optimize!
+
+- Investigate muProf
+- Investigate Optik
+
+Profiling should probably happen on local
