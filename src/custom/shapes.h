@@ -48,7 +48,7 @@ namespace cu_utils
         Ray sampleSurface(int samples, Real &jacobian, pcg32_state &rng) const override;
 
         // Given a hit, return the barycentric coordinates of the hit
-        Vector3 getBarycentric(const Ray &ray, const RayHit &hit) const;
+        Vector3 getBarycentric(const Vector3 p) const;
 
         void setUVs(Vector2 uv0, Vector2 uv1, Vector2 uv2);
     };

@@ -206,7 +206,7 @@ namespace cu_utils
                 {
                     if (const Triangle *tri = dynamic_cast<const Triangle *>(bestHit.sphere))
                     {
-                        Vector3 bary = tri->getBarycentric(ray, bestHit);
+                        Vector3 bary = tri->getBarycentric(ray * bestHit.t);
                         color = bary;
                     }
                     else // Not a triangle, just render as flat

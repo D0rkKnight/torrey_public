@@ -16,7 +16,6 @@ Image3 hw_3_1(const std::vector<std::string> &params)
     UNUSED(scene);
 
     cu_utils::Renderer renderer(cu_utils::Mode::MATTE_REFLECT);
-    scene.samples_per_pixel = 10;
 
     return renderer.render(scene);
 }

@@ -147,28 +147,18 @@ RayHit Triangle::checkHit(const Ray &ray) const
 
     // n is the weighted average of the triangle's normals
     Vector3 n = normalize(n0 + u * (n1 - n0) + v * (n2 - n0));
-
-    // Return the normal facing the ray
-    bool backface = false;
-    if (dot(n, ray.dir) > 0)
-    {
-        n = -n;
-        backface = true;
-    }
+    bool backface = dot(n, ray.dir);
+    n = backface ? -n : n;
 
     // Use barycentric
-    Vector3 bary = getBarycentric(ray, RayHit(true, t, this, n, 0, 0, backface));
-
-    // Interpolate UVs
+    Vector3 bary = getBarycentric(ray * t);
     Vector2 uv = bary.x * uv0 + bary.y * uv1 + bary.z * uv2;
 
     return RayHit(true, t, this, n, uv.x, uv.y, backface);
 }
 
-Vector3 Triangle::getBarycentric(const Ray &ray, const RayHit &hit) const
+Vector3 Triangle::getBarycentric(const Vector3 p) const
 {
-    Vector3 p = ray * hit.t;
-
     // Compute vectors
     Vector3 b2v1 = v1 - v0;
     Vector3 b2v2 = v2 - v0;

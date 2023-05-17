@@ -2,7 +2,6 @@ Test Suite Setup
 1. Get some basic tests running (way to incrementally dev these complex algorithms)
 
 BVH optimization
-0. Sort by center rather than minimum corner
 1. Use std::nth_element or std::partition for BVH construction
     - BVH completeness tests (making sure that outcome is fully represented)
     - Partition correctness tests
@@ -11,6 +10,9 @@ BVH optimization
     - SAH correctness test
 3. Multi-child leaves
 4. n-ary branching
+5. Flatten BVH memory representation
+6. Prefer closer bounding boxes
+7. Sort by center rather than minimum corner
 
 Note: should make this in a test space first I reckon
 Just link in from the hw? should work fine

@@ -25,15 +25,18 @@ bool BoundingBox::checkHit(const Ray &ray) const
 bool BoundingBox::checkHit(const Ray &ray, Real tmin, Real tmax) const
 {
     for (int a=0; a<3; a++) {
+        Real origin = ray.origin[a];
+
         auto invdir = 1.0 / ray.dir[a];
-        auto t0 = (minc[a] - ray.origin[a]) * invdir;
-        auto t1 = (maxc[a] - ray.origin[a]) * invdir;
+        auto t0 = (minc[a] - origin) * invdir;
+        auto t1 = (maxc[a] - origin) * invdir;
 
         if (invdir < 0.0)
             std::swap(t0, t1);
 
         tmin = t0 > tmin ? t0 : tmin;
         tmax = t1 < tmax ? t1 : tmax;
+
         if (tmax < tmin)
             return false;
     }
