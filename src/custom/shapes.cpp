@@ -27,10 +27,10 @@ RayHit Sphere::checkHit(const Ray &ray) const
 
         // uv should be based on normal (before any inner-face inversion)
         auto theta = acos(n.y);
-        auto phi = atan2(-n.z, n.x) + M_PI;
+        auto phi = atan2(-n.z, n.x) + MY_PI;
 
-        Real u = phi / (2 * M_PI);
-        Real v = theta / M_PI;
+        Real u = phi / (2 * MY_PI);
+        Real v = theta / MY_PI;
 
         bool backface = false;
         if (t <= 0)
@@ -78,7 +78,7 @@ Ray Sphere::sampleSurface(int samples, Real &jacobian, pcg32_state &rng) const
     Real u2 = next_pcg32_real<Real>(rng);
 
     Real theta = acos(1 - 2 * u1);
-    Real phi = 2 * M_PI * u2;
+    Real phi = 2 * MY_PI * u2;
 
     Real x = sin(theta) * cos(phi);
     Real y = sin(theta) * sin(phi);
@@ -87,7 +87,7 @@ Ray Sphere::sampleSurface(int samples, Real &jacobian, pcg32_state &rng) const
     Vector3 dir = Vector3(x, y, z);
 
     // Compute jacobian
-    jacobian = 4 * M_PI * this->radius * this->radius;
+    jacobian = 4 * MY_PI * this->radius * this->radius;
 
     // Create ray
     Ray ray = Ray(center + dir * radius, dir);

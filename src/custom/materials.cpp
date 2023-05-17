@@ -79,7 +79,7 @@ Vector3 cu_utils::matte(const Renderer *renderer, const Ray ray, const RayHit be
             Real lightNormalAlign = dot(normalize(hit2light), -lightRay.dir);
 
             // Bring it all together
-            color += hadamard(albedo, light->intensity) * localNormalAlign * lightNormalAlign / lightDistSqrd * jacobian / M_PI;
+            color += hadamard(albedo, light->intensity) * localNormalAlign * lightNormalAlign / lightDistSqrd * jacobian / MY_PI;
         }
     }
 

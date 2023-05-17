@@ -2,21 +2,22 @@
 #include "../image.h"
 #include "../vector.h"
 #include "../matrix.h"
-#include "Ray.h"
+#include "ray.h"
 #include <cstdlib>
 
 namespace cu_utils
 {
-    const Real M_PI = 3.14159265358979323846;
+    // Seems like GCC has M_PI allocated already
+    const Real MY_PI = 3.14159265358979323846;
 
     inline Real d2r(Real deg)
     {
-        return deg * M_PI / 180;
+        return deg * MY_PI / 180;
     }
 
     inline Real r2d(Real rad)
     {
-        return rad * 180 / M_PI;
+        return rad * 180 / MY_PI;
     }
 
     inline Vector4 matXvec(const Matrix4x4 &mat, const Vector4 &vec)

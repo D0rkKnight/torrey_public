@@ -42,3 +42,7 @@ __pycache__/
 
 # Everything in the scene folder
 scenes/
+my_scenes/
+
+# Output folder as well
+out/
