@@ -147,7 +147,8 @@ RayHit Triangle::checkHit(const Ray &ray) const
 
     // n is the weighted average of the triangle's normals
     Vector3 n = normalize(n0 + u * (n1 - n0) + v * (n2 - n0));
-    bool backface = dot(n, ray.dir);
+
+    bool backface = dot(n, ray.dir) > 0;
     n = backface ? -n : n;
 
     // Use barycentric
