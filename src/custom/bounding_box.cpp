@@ -17,18 +17,19 @@ BoundingBox::BoundingBox()
     maxc = Vector3{std::numeric_limits<Real>::lowest(), std::numeric_limits<Real>::lowest(), std::numeric_limits<Real>::lowest()};
 }
 
-bool BoundingBox::checkHit(const Ray &ray, Vector3 invdir) const
+bool BoundingBox::checkHit(const Ray &ray) const
 {
-    return checkHit(ray, invdir, 0.0, std::numeric_limits<Real>::max());
+    return checkHit(ray, 0.0, std::numeric_limits<Real>::max());
 }
 
-bool BoundingBox::checkHit(const Ray &ray, Vector3 invdir, Real tmin, Real tmax) const
+bool BoundingBox::checkHit(const Ray &ray, Real tmin, Real tmax) const
 {
     for (int a=0; a<3; a++) {
-        auto t0 = (minc[a] - ray.origin[a]) * invdir[a];
-        auto t1 = (maxc[a] - ray.origin[a]) * invdir[a];
+        auto invdir = 1.0 / ray.dir[a];
+        auto t0 = (minc[a] - ray.origin[a]) * invdir;
+        auto t1 = (maxc[a] - ray.origin[a]) * invdir;
 
-        if (invdir[a] < 0.0)
+        if (invdir < 0.0)
             std::swap(t0, t1);
 
         tmin = t0 > tmin ? t0 : tmin;
@@ -102,12 +103,12 @@ BBNode BBNode::buildTree(std::vector<Shape *> shapes)
     return root;
 }
 
-RayHit BBNode::checkHit(const Ray &ray, Vector3 invdir) const
+RayHit BBNode::checkHit(const Ray &ray) const
 {
     // Check for bounding box effectiveness.
     // scansMade++; I believe these hurt performance by breaking parallelism
 
-    if (!box.checkHit(ray, invdir))
+    if (!box.checkHit(ray))
     {
         return RayHit();
     }
@@ -124,7 +125,7 @@ RayHit BBNode::checkHit(const Ray &ray, Vector3 invdir) const
 
     for (int i = 0; i < children.size(); i++)
     {
-        RayHit hit = children[i].checkHit(ray, invdir);
+        RayHit hit = children[i].checkHit(ray);
         if (hit.hit && (bestHit.hit == false || hit.t < bestHit.t))
         {
             bestHit = hit;

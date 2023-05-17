@@ -232,9 +232,6 @@ namespace cu_utils
 
         RayHit castRay(const Ray &ray, const vector<Shape *> &shapes, const BBNode &objRoot) const
         {
-            // Precompute invdir
-            Vector3 invdir = Vector3{1, 1, 1} / ray.dir;
-
             // AABB Mode only behavior
             if (mode == Mode::AABB)
             {
@@ -245,7 +242,7 @@ namespace cu_utils
                     BoundingBox bounds = shape->getBoundingBox();
 
                     // Check if the ray intersects the bounding box
-                    if (!bounds.checkHit(ray, invdir))
+                    if (!bounds.checkHit(ray))
                         continue;
 
                     // Some unique AABB behavior
@@ -259,7 +256,7 @@ namespace cu_utils
             // What it's supposed to do: Check the object tree and render
             BBNode::boxesHit = 0;
             BBNode::scansMade = 0;
-            RayHit bestHit = objRoot.checkHit(ray, invdir);
+            RayHit bestHit = objRoot.checkHit(ray);
 
             // std::cout << "Boxes hit: " << BBNode::boxesHit << std::endl;
             // std::cout << "Scans made: " << BBNode::scansMade << std::endl;

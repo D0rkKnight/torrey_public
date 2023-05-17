@@ -16,8 +16,8 @@ namespace cu_utils
         BoundingBox();
 
         // Returns true if the ray intersects the bounding box
-        bool checkHit(const Ray &ray, Vector3 invdir) const;
-        bool checkHit(const Ray &ray, Vector3 invdir, Real tmin, Real tmax) const;
+        bool checkHit(const Ray &ray) const;
+        bool checkHit(const Ray &ray, Real tmin, Real tmax) const;
     };
 
     struct BBNode
@@ -28,7 +28,7 @@ namespace cu_utils
         std::vector<BBNode> children;
 
         BBNode(BoundingBox box, Shape *shape); // Children are written to afterwards
-        RayHit checkHit(const Ray &ray, Vector3 invdir) const;
+        RayHit checkHit(const Ray &ray) const;
 
         static BBNode buildTree(std::vector<Shape *> shapes);
 
