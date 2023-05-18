@@ -81,3 +81,31 @@ target_link_libraries(torrey torrey_lib)
 # elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 # add_compile_options(-w)
 # endif()
+
+# Build and link testing executable
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/cb455a71fb23303e37ce8ee5b1cde6a2c18f66a5.zip
+)
+FetchContent_MakeAvailable(googletest)
+
+# enable_testing()
+
+file(GLOB_RECURSE GTEST_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/tests/*.cpp)
+
+add_executable(
+  gtests
+  ${GTEST_SOURCES}
+)
+target_link_libraries(
+  gtests
+  GTest::gtest_main
+)
+
+target_link_libraries(gtests Threads::Threads)
+target_link_libraries(gtests torrey_lib)
+
+include(GoogleTest)
+gtest_discover_tests(gtests)
