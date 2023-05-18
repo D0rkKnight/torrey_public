@@ -54,6 +54,8 @@ BoundingBox BoundingBox::operator+(const BoundingBox &other) const {
 int BVHNode::scansMade = 0;
 int BVHNode::boxesHit = 0;
 
+BVHNode::BVHNode(): BVHNode(BoundingBox(), std::vector<Shape *>()) {}
+
 BVHNode::BVHNode(BoundingBox box, std::vector<Shape *> shapes)
 {
     this->box = box;

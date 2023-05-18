@@ -32,6 +32,7 @@ namespace cu_utils
 
         BVHNode(BoundingBox box, std::vector<Shape *> shapes); // Children are written to afterwards
         BVHNode(BoundingBox box, std::vector<Shape *> shapes, std::vector<BVHNode> children); // Children are written to afterwards
+        BVHNode();
 
         RayHit checkHit(const Ray &ray) const;
 

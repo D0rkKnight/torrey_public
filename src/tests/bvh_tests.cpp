@@ -4,6 +4,7 @@
 #include "../custom/bounding_box.h"
 #include "../custom/shapes.h"
 #include "../custom/utils.h"
+#include "../custom/sah.h"
 
 
 using namespace cu_utils;
@@ -79,3 +80,68 @@ TEST(BVHTest, ContainsAllShapes) {
     }
 }
 
+TEST(SAHandLongestExtentTest, SurfaceArea) {
+    // Test surface area of a unit cube
+    BoundingBox box(Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.5f, 0.5f, 0.5f));
+    float result = surfaceArea(box);
+    EXPECT_FLOAT_EQ(result, 6.0f);
+
+    // Test surface area of a non-cubic box
+    BoundingBox box2(Vector3(-1.0f, -2.0f, -3.0f), Vector3(4.0f, 5.0f, 6.0f));
+    float result2 = surfaceArea(box2);
+    EXPECT_FLOAT_EQ(result2, 286.0f);
+}
+
+TEST(SAHandLongestExtentTest, LongestExtent) {
+    // Test longest extent of a unit cube
+    BoundingBox box(Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.5f, 0.5f, 0.5f));
+    int result = longestExtent(box.maxc - box.minc);
+    EXPECT_EQ(result, 0);
+
+    // Test longest extent of a non-cubic box
+    BoundingBox box2(Vector3(-1.0f, -2.0f, -3.0f), Vector3(4.0f, 5.0f, 6.0f));
+    int result2 = longestExtent(box2.maxc - box2.minc);
+    EXPECT_EQ(result2, 2);
+}
+
+TEST(SAHandPartitionTest, ComputeBuckets) {
+    // Test computing buckets for a range of primitives
+    std::vector<BVHPrimitiveInfo> primitiveInfo = {
+        {nullptr, BoundingBox(Vector3(-1.0f, -1.0f, -1.0f), Vector3(1.0f, 1.0f, 1.0f)), Vector3(-2.0f, 0.0f, 0.0f)},
+        {nullptr, BoundingBox(Vector3(-2.0f, -2.0f, -2.0f), Vector3(2.0f, 2.0f, 2.0f)), Vector3(0.0f, 1.0f, 1.0f)},
+        {nullptr, BoundingBox(Vector3(-3.0f, -3.0f, -3.0f), Vector3(3.0f, 3.0f, 3.0f)), Vector3(2.0f, 2.0f, 2.0f)}
+    };
+    BoundingBox bounds(Vector3(-3.0f, -3.0f, -3.0f), Vector3(3.0f, 3.0f, 3.0f));
+
+    const int NUM_BUCKETS = 3;
+    BucketInfo buckets[NUM_BUCKETS];
+    computeBuckets(primitiveInfo, 0, 3, bounds, 0, buckets, NUM_BUCKETS);
+    
+    EXPECT_EQ(buckets[0].count, 1);
+    EXPECT_EQ(buckets[1].count, 1);
+    EXPECT_EQ(buckets[2].count, 1);
+}
+
+TEST(SAHandPartitionTest, ComputeBucketCost) {
+    // Test computing bucket cost for a split
+    const int NUM_BUCKETS = 2;
+    BucketInfo buckets[NUM_BUCKETS] = {
+        {1, BoundingBox(Vector3(-1.0f, -2.0f, -1.0f), Vector3(1.0f, 0.0f, 1.0f))},
+        {2, BoundingBox(Vector3(-2.0f, 0.0f, -2.0f), Vector3(2.0f, 2.0f, 2.0f))}
+    };
+    BoundingBox bounds(Vector3(-3.0f, -3.0f, -3.0f), Vector3(3.0f, 3.0f, 3.0f));
+    Real cost = computeBucketCost(buckets, 1, bounds, NUM_BUCKETS);
+    EXPECT_NEAR(cost, 1.4583f, 0.001);
+}
+
+TEST(SAHandPartitionTest, PartitionPrimitives) {
+    // Test partitioning primitives based on a split bucket
+    std::vector<BVHPrimitiveInfo> primitiveInfo = {
+        {nullptr, BoundingBox(Vector3(-1.0f, -1.0f, -1.0f), Vector3(1.0f, 1.0f, 1.0f)), Vector3(0.0f, 0.0f, 0.0f)},
+        {nullptr, BoundingBox(Vector3(-2.0f, -2.0f, -2.0f), Vector3(2.0f, 2.0f, 2.0f)), Vector3(1.0f, 1.0f, 1.0f)},
+        {nullptr, BoundingBox(Vector3(-3.0f, -3.0f, -3.0f), Vector3(3.0f, 3.0f, 3.0f)), Vector3(2.0f, 2.0f, 2.0f)}
+    };
+    BoundingBox bounds(Vector3(-3.0f, -3.0f, -3.0f), Vector3(3.0f, 3.0f, 3.0f));
+    int mid = partitionPrimitives(primitiveInfo, 0, 3, bounds, 0, 1);
+    EXPECT_EQ(mid, 1);
+}
