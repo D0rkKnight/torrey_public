@@ -18,19 +18,24 @@ namespace cu_utils
         // Returns true if the ray intersects the bounding box
         bool checkHit(const Ray &ray) const;
         bool checkHit(const Ray &ray, Real tmin, Real tmax) const;
+
+        // Returns the union of the two BBs
+        BoundingBox operator+(const BoundingBox &other) const;
     };
 
-    struct BBNode
+    struct BVHNode
     {
     public:
         BoundingBox box;
-        Shape *shape;
-        std::vector<BBNode> children;
+        std::vector<Shape *> shapes;
+        std::vector<BVHNode> children;
 
-        BBNode(BoundingBox box, Shape *shape); // Children are written to afterwards
+        BVHNode(BoundingBox box, std::vector<Shape *> shapes); // Children are written to afterwards
+        BVHNode(BoundingBox box, std::vector<Shape *> shapes, std::vector<BVHNode> children); // Children are written to afterwards
+
         RayHit checkHit(const Ray &ray) const;
 
-        static BBNode buildTree(std::vector<Shape *> shapes);
+        static BVHNode buildTree(std::vector<Shape *> shapes);
 
         static int scansMade;
         static int boxesHit;

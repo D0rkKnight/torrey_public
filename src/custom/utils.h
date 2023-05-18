@@ -68,4 +68,8 @@ namespace cu_utils
 
         return reflectRay;
     }
+
+    inline bool equals(const Vector3& a, const Vector3& b, float epsilon = 1e-6f) {
+        return fabs(a.x - b.x) < epsilon && fabs(a.y - b.y) < epsilon && fabs(a.z - b.z) < epsilon;
+    }
 }

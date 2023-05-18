@@ -26,29 +26,29 @@ namespace cu_utils
         Vector3 getTexColor(Real u, Real v);
         void loadTexture(ParsedImageTexture *texMeta);
 
-        virtual Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth) const;
+        virtual Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const;
     };
 
     struct LambertMaterial : public Material
     {
         LambertMaterial();
-        Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth) const override;
+        Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const override;
     };
 
     struct MirrorMaterial : public Material
     {
         MirrorMaterial();
-        Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth) const override;
+        Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const override;
     };
 
     struct PlasticMaterial : public Material
     {
         PlasticMaterial();
-        Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth) const override;
+        Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const override;
     };
 
-    Vector3 matte(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng);
-    Vector3 mirror(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth);
-    Vector3 plastic(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth);
+    Vector3 matte(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng);
+    Vector3 mirror(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth);
+    Vector3 plastic(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth);
 
 }

@@ -8,7 +8,7 @@
 
 using namespace cu_utils;
 
-Vector3 cu_utils::matte(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng)
+Vector3 cu_utils::matte(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng)
 {
     Material *material = scene.materials[bestHit.sphere->material_id];
 
@@ -86,7 +86,7 @@ Vector3 cu_utils::matte(const Renderer *renderer, const Ray ray, const RayHit be
     return color;
 }
 
-Vector3 cu_utils::mirror(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth)
+Vector3 cu_utils::mirror(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth)
 {
     Material *material = scene.materials[bestHit.sphere->material_id];
 
@@ -99,7 +99,7 @@ Vector3 cu_utils::mirror(const Renderer *renderer, const Ray ray, const RayHit b
     return hadamard(fresnel, renderer->getPixelColor(reflectRay, scene, objRoot, rng, depth - 1));
 }
 
-Vector3 cu_utils::plastic(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth)
+Vector3 cu_utils::plastic(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth)
 {
     Material *material = scene.materials[bestHit.sphere->material_id];
 
@@ -125,19 +125,19 @@ Vector3 cu_utils::plastic(const Renderer *renderer, const Ray ray, const RayHit 
 }
 
 // Write in material methods
-Vector3 cu_utils::Material::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth) const
+Vector3 cu_utils::Material::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const
 {
     std::cerr << "Material::shadePoint() called, this should never happen\n"
               << std::endl;
     return Vector3{0, 0, 0};
 }
 
-Vector3 cu_utils::LambertMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth = 0) const
+Vector3 cu_utils::LambertMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth = 0) const
 {
     return matte(renderer, ray, bestHit, scene, objRoot, rng);
 }
 
-Vector3 cu_utils::MirrorMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth = 0) const
+Vector3 cu_utils::MirrorMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth = 0) const
 {
     if (depth <= 0)
         return matte(renderer, ray, bestHit, scene, objRoot, rng);
@@ -145,7 +145,7 @@ Vector3 cu_utils::MirrorMaterial::shadePoint(const Renderer *renderer, const Ray
     return mirror(renderer, ray, bestHit, scene, objRoot, rng, depth);
 }
 
-Vector3 cu_utils::PlasticMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth = 0) const
+Vector3 cu_utils::PlasticMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth = 0) const
 {
     return plastic(renderer, ray, bestHit, scene, objRoot, rng, depth);
 }

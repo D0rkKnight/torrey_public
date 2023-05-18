@@ -44,26 +44,38 @@ bool BoundingBox::checkHit(const Ray &ray, Real tmin, Real tmax) const
     return true;
 }
 
-int BBNode::scansMade = 0;
-int BBNode::boxesHit = 0;
+BoundingBox BoundingBox::operator+(const BoundingBox &other) const {
+    Vector3 minc = Vector3{std::min(this->minc.x, other.minc.x), std::min(this->minc.y, other.minc.y), std::min(this->minc.z, other.minc.z)};
+    Vector3 maxc = Vector3{std::max(this->maxc.x, other.maxc.x), std::max(this->maxc.y, other.maxc.y), std::max(this->maxc.z, other.maxc.z)};
 
-BBNode::BBNode(BoundingBox box, Shape *shape)
-{
-    this->box = box;
-    this->shape = shape;
+    return BoundingBox(minc, maxc);    
 }
 
-BBNode BBNode::buildTree(std::vector<Shape *> shapes)
+int BVHNode::scansMade = 0;
+int BVHNode::boxesHit = 0;
+
+BVHNode::BVHNode(BoundingBox box, std::vector<Shape *> shapes)
+{
+    this->box = box;
+    this->shapes = shapes;
+}
+
+BVHNode::BVHNode(BoundingBox box, std::vector<Shape *> shapes, std::vector<BVHNode> children): BVHNode(box, shapes)
+{
+    this->children = children;
+}
+
+BVHNode BVHNode::buildTree(std::vector<Shape *> shapes)
 {
     // If it's just one shape, return a node with that shape
     if (shapes.size() == 1)
     {
-        return BBNode(shapes[0]->getBoundingBox(), shapes[0]);
+        return BVHNode(shapes[0]->getBoundingBox(), shapes);
     }
 
     // Otherwise, return a branch node
     bool dimsInitialized = false;
-    BBNode root = BBNode(BoundingBox(), nullptr);
+    BVHNode root = BVHNode(BoundingBox(), std::vector<Shape *>());
     for (int i = 0; i < shapes.size(); i++)
     {
         BoundingBox cbox = shapes[i]->getBoundingBox();
@@ -106,7 +118,7 @@ BBNode BBNode::buildTree(std::vector<Shape *> shapes)
     return root;
 }
 
-RayHit BBNode::checkHit(const Ray &ray) const
+RayHit BVHNode::checkHit(const Ray &ray) const
 {
     // Check for bounding box effectiveness.
     // scansMade++; I believe these hurt performance by breaking parallelism
@@ -118,9 +130,20 @@ RayHit BBNode::checkHit(const Ray &ray) const
 
     // boxesHit++;
 
-    if (shape != nullptr)
+    if (shapes.size() > 0)
     {
-        return shape->checkHit(ray);
+        // Go thru shapes and get best t
+        RayHit bestHit = RayHit();
+        for (int i = 0; i < shapes.size(); i++)
+        {
+            RayHit hit = shapes[i]->checkHit(ray);
+            if (hit.hit && (bestHit.hit == false || hit.t < bestHit.t))
+            {
+                bestHit = hit;
+            }
+        }
+
+        return bestHit;
     }
 
     // Go over every child and compare their rayhit dists

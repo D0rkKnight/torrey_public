@@ -76,7 +76,7 @@ namespace cu_utils
                              .build();
 
             // Build object hierarchy
-            BBNode root = BBNode::buildTree(scene.shapes);
+            BVHNode root = BVHNode::buildTree(scene.shapes);
             std::cout << "Built object hierarchy" << std::endl;
 
             constexpr int tile_size = 16;
@@ -112,7 +112,7 @@ namespace cu_utils
             reporter.done();
         }
 
-        Vector3 renderPixel(Image3 &img, const Scene &scene, BBNode &objRoot, int x, int y, pcg32_state &rng)
+        Vector3 renderPixel(Image3 &img, const Scene &scene, BVHNode &objRoot, int x, int y, pcg32_state &rng)
         {
             // Build better camera with scene data
             Camera cam = CameraBuilder(img.width, img.height)
@@ -146,7 +146,7 @@ namespace cu_utils
             }
         }
 
-        Vector3 getPixelColor(const Ray &ray, const Scene &scene, const BBNode &objRoot, pcg32_state &rng, int depth = 0) const
+        Vector3 getPixelColor(const Ray &ray, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth = 0) const
         {
             auto bestHit = castRay(ray, scene.shapes, objRoot);
 
@@ -230,7 +230,7 @@ namespace cu_utils
             return color;
         }
 
-        RayHit castRay(const Ray &ray, const vector<Shape *> &shapes, const BBNode &objRoot) const
+        RayHit castRay(const Ray &ray, const vector<Shape *> &shapes, const BVHNode &objRoot) const
         {
             // AABB Mode only behavior
             if (mode == Mode::AABB)
@@ -254,8 +254,8 @@ namespace cu_utils
             }
 
             // What it's supposed to do: Check the object tree and render
-            BBNode::boxesHit = 0;
-            BBNode::scansMade = 0;
+            BVHNode::boxesHit = 0;
+            BVHNode::scansMade = 0;
             RayHit bestHit = objRoot.checkHit(ray);
 
             // std::cout << "Boxes hit: " << BBNode::boxesHit << std::endl;
