@@ -71,5 +71,15 @@ namespace cu_utils
 
     inline bool equals(const Vector3& a, const Vector3& b, float epsilon = 1e-6f) {
         return fabs(a.x - b.x) < epsilon && fabs(a.y - b.y) < epsilon && fabs(a.z - b.z) < epsilon;
-    }
+    };
+
+    inline int longestExtent (const Vector3& v) {
+        if (v.x >= v.y && v.x >= v.z) {
+            return 0;
+        } else if (v.y >= v.z) {
+            return 1;
+        } else {
+            return 2;
+        }
+    };
 }

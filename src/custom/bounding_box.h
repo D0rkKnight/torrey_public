@@ -23,6 +23,14 @@ namespace cu_utils
         BoundingBox operator+(const BoundingBox &other) const;
     };
 
+    struct BVHPrimitiveInfo {
+        Shape *primitiveRef;
+        BoundingBox bounds;
+        Vector3 centroid;
+
+        BVHPrimitiveInfo(Shape *primitiveRef, BoundingBox bounds);
+    };
+
     struct BVHNode
     {
     public:
@@ -36,6 +44,7 @@ namespace cu_utils
 
         RayHit checkHit(const Ray &ray) const;
 
+        static BVHNode buildTree(std::vector<BVHPrimitiveInfo> primInfo, int start, int end);
         static BVHNode buildTree(std::vector<Shape *> shapes);
 
         static int scansMade;

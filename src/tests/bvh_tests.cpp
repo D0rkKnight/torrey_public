@@ -107,9 +107,9 @@ TEST(SAHandLongestExtentTest, LongestExtent) {
 TEST(SAHandPartitionTest, ComputeBuckets) {
     // Test computing buckets for a range of primitives
     std::vector<BVHPrimitiveInfo> primitiveInfo = {
-        {nullptr, BoundingBox(Vector3(-1.0f, -1.0f, -1.0f), Vector3(1.0f, 1.0f, 1.0f)), Vector3(-2.0f, 0.0f, 0.0f)},
-        {nullptr, BoundingBox(Vector3(-2.0f, -2.0f, -2.0f), Vector3(2.0f, 2.0f, 2.0f)), Vector3(0.0f, 1.0f, 1.0f)},
-        {nullptr, BoundingBox(Vector3(-3.0f, -3.0f, -3.0f), Vector3(3.0f, 3.0f, 3.0f)), Vector3(2.0f, 2.0f, 2.0f)}
+        BVHPrimitiveInfo(nullptr, BoundingBox(Vector3(-3.0f, -2.0f, -2.0f), Vector3(-1.0f, 2.0f, 2.0f))),
+        BVHPrimitiveInfo(nullptr, BoundingBox(Vector3(-1.0f, -3.0f, -3.0f), Vector3(1.0f, 3.0f, 3.0f))),
+        BVHPrimitiveInfo(nullptr, BoundingBox(Vector3(1.0f, -1.0f, -1.0f), Vector3(3.0f, 1.0f, 1.0f)))
     };
     BoundingBox bounds(Vector3(-3.0f, -3.0f, -3.0f), Vector3(3.0f, 3.0f, 3.0f));
 
@@ -137,11 +137,11 @@ TEST(SAHandPartitionTest, ComputeBucketCost) {
 TEST(SAHandPartitionTest, PartitionPrimitives) {
     // Test partitioning primitives based on a split bucket
     std::vector<BVHPrimitiveInfo> primitiveInfo = {
-        {nullptr, BoundingBox(Vector3(-1.0f, -1.0f, -1.0f), Vector3(1.0f, 1.0f, 1.0f)), Vector3(0.0f, 0.0f, 0.0f)},
-        {nullptr, BoundingBox(Vector3(-2.0f, -2.0f, -2.0f), Vector3(2.0f, 2.0f, 2.0f)), Vector3(1.0f, 1.0f, 1.0f)},
-        {nullptr, BoundingBox(Vector3(-3.0f, -3.0f, -3.0f), Vector3(3.0f, 3.0f, 3.0f)), Vector3(2.0f, 2.0f, 2.0f)}
+        BVHPrimitiveInfo(nullptr, BoundingBox(Vector3(-1.0f, -1.0f, -1.0f), Vector3(1.0f, 1.0f, 1.0f))),
+        BVHPrimitiveInfo(nullptr, BoundingBox(Vector3(-1.0f, -2.0f, -2.0f), Vector3(3.0f, 2.0f, 2.0f))),
+        BVHPrimitiveInfo(nullptr, BoundingBox(Vector3(-1.0f, -3.0f, -3.0f), Vector3(5.0f, 3.0f, 3.0f)))
     };
     BoundingBox bounds(Vector3(-3.0f, -3.0f, -3.0f), Vector3(3.0f, 3.0f, 3.0f));
-    int mid = partitionPrimitives(primitiveInfo, 0, 3, bounds, 0, 1);
+    int mid = partitionPrimitives(primitiveInfo, 0, 3, bounds, 0, 7);
     EXPECT_EQ(mid, 1);
 }

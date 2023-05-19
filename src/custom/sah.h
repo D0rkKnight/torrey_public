@@ -6,12 +6,6 @@
 
 namespace cu_utils {
 
-    struct BVHPrimitiveInfo {
-        Shape *primitiveRef;
-        BoundingBox bounds;
-        Vector3 centroid;
-    };
-
     struct BucketInfo {
         int count = 0;
         BoundingBox bounds;
@@ -35,16 +29,6 @@ namespace cu_utils {
     bool compareCentroid(const BVHPrimitiveInfo& a, const BVHPrimitiveInfo& b, int dim) {
         return a.centroid[dim] < b.centroid[dim];
     }
-
-    int longestExtent (const Vector3& v) {
-        if (v.x >= v.y && v.x >= v.z) {
-            return 0;
-        } else if (v.y >= v.z) {
-            return 1;
-        } else {
-            return 2;
-        }
-    };
 
     /**
      * Sorts into NUM_BUCKETS
@@ -102,6 +86,7 @@ namespace cu_utils {
                 bucketIndex--;
             }
             
+        // Equivalent bucket index gets placed into lesser partition
             return bucketIndex <= minCostSplitBucket;
         };
         BVHPrimitiveInfo* midPtr = std::partition(primitiveInfo.data() + start, primitiveInfo.data() + end, partitionFunc);

@@ -2,6 +2,7 @@
 #include "bounding_box.h"
 #include "shapes.h"
 #include <iostream>
+#include "utils.h"
 
 using namespace cu_utils;
 
@@ -67,20 +68,43 @@ BVHNode::BVHNode(BoundingBox box, std::vector<Shape *> shapes, std::vector<BVHNo
     this->children = children;
 }
 
-BVHNode BVHNode::buildTree(std::vector<Shape *> shapes)
+BVHPrimitiveInfo::BVHPrimitiveInfo(Shape *primitiveRef, BoundingBox bounds)
+{
+    this->primitiveRef = primitiveRef;
+    this->bounds = bounds;
+    this->centroid = (bounds.minc + bounds.maxc) / 2.0;
+}
+
+// Give shapes and precompute bounding boxes
+BVHNode BVHNode::buildTree(std::vector<Shape *> shapes) {
+
+    // Generate primitive info
+    std::vector<BVHPrimitiveInfo> primInfo;
+    for (int i = 0; i < shapes.size(); i++)
+    {
+        BoundingBox cbox = shapes[i]->getBoundingBox();
+        primInfo.push_back(BVHPrimitiveInfo(shapes[i], cbox));
+    }
+
+    // Build the tree
+    return buildTree(primInfo, 0, shapes.size());
+}
+
+BVHNode BVHNode::buildTree(std::vector<BVHPrimitiveInfo> primInfo, int start, int end)
 {
     // If it's just one shape, return a node with that shape
-    if (shapes.size() == 1)
+    // Wonder if this catches all leaf cases? :/
+    if (end - start == 1)
     {
-        return BVHNode(shapes[0]->getBoundingBox(), shapes);
+        return BVHNode(primInfo[start].bounds, std::vector<Shape *>{primInfo[start].primitiveRef});
     }
 
     // Otherwise, return a branch node
     bool dimsInitialized = false;
     BVHNode root = BVHNode(BoundingBox(), std::vector<Shape *>());
-    for (int i = 0; i < shapes.size(); i++)
+    for (int i = start; i < end; i++)
     {
-        BoundingBox cbox = shapes[i]->getBoundingBox();
+        BoundingBox cbox = primInfo[i].bounds;
 
         // Initialize the root bounding box, will be infinite size otherwise
         if (!dimsInitialized)
@@ -89,33 +113,25 @@ BVHNode BVHNode::buildTree(std::vector<Shape *> shapes)
             dimsInitialized = true;
         }
 
-        root.box.minc = min(root.box.minc, cbox.minc);
-        root.box.maxc = max(root.box.maxc, cbox.maxc);
+        // Expand the root bounding box
+        root.box = root.box + cbox;
     }
 
     // Get the longer axis and sort the shapes by that axis
     Vector3 dims = root.box.maxc - root.box.minc;
-    int longestAxis = 0;
-    if (dims.y > dims.x && dims.y > dims.z)
-    {
-        longestAxis = 1;
-    }
-    else if (dims.z > dims.x && dims.z > dims.y)
-    {
-        longestAxis = 2;
-    }
+    int longestAxis = longestExtent(dims);
 
     // Sort the shapes by the longest axis
-    std::sort(shapes.begin(), shapes.end(), [longestAxis](Shape *a, Shape *b)
-              { return a->getBoundingBox().minc[longestAxis] < b->getBoundingBox().minc[longestAxis]; });
+    int mid = start + (end - start) / 2;
+
+    std::sort(primInfo.begin()+start, primInfo.begin()+mid , [longestAxis](BVHPrimitiveInfo a, BVHPrimitiveInfo b)
+              { return a.bounds.minc[longestAxis] < b.bounds.minc[longestAxis]; });
 
     // Split the shapes into two groups
-    std::vector<Shape *> leftShapes(shapes.begin(), shapes.begin() + shapes.size() / 2);
-    std::vector<Shape *> rightShapes(shapes.begin() + shapes.size() / 2, shapes.end());
 
     // Recursively build the tree
-    root.children.push_back(buildTree(leftShapes));
-    root.children.push_back(buildTree(rightShapes));
+    root.children.push_back(buildTree(primInfo, start, mid));
+    root.children.push_back(buildTree(primInfo, mid, end));
 
     return root;
 }
