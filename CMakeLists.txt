@@ -84,7 +84,7 @@ target_link_libraries(torrey torrey_lib)
 
 # Build and link testing executable
 # Turn off optimizations for testing
-set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_BUILD_TYPE Debug)
 
 include(FetchContent)
 FetchContent_Declare(
