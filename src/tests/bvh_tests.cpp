@@ -80,6 +80,45 @@ TEST(BVHTest, ContainsAllShapes) {
     }
 }
 
+
+TEST(BVHTest, Midsplit) {
+        std::vector<Shape*> shapes = {
+        new Sphere(Vector3(0, 0, 0), 1, 0),
+        new Sphere(Vector3(2, 0, 0), 1, 0),
+        new Sphere(Vector3(4, 0, 0), 1, 0),
+        new Sphere(Vector3(6, 0, 0), 1, 0),
+        new Sphere(Vector3(8, 0, 0), 1, 0),
+        new Sphere(Vector3(10, 0, 0), 1, 0),
+    };
+    
+    BVHNode root = BVHNode::buildTree(shapes);
+
+    // Expect that iterating over both children returns 3 shapes each
+    EXPECT_EQ(root.children.size(), 2);
+
+    std::vector<Shape*> shapesInTree;
+    std::function<void(const BVHNode&)> traverse = [&](const BVHNode& node) {
+        if (node.shapes.size() >= 0) {
+            shapesInTree.insert(shapesInTree.end(), node.shapes.begin(), node.shapes.end());        }
+        for (const BVHNode& child : node.children) {
+            traverse(child);
+        }
+    };
+
+    traverse(root);
+    EXPECT_EQ(shapesInTree.size(), shapes.size());
+
+    // Expect that the first child contains the first 3 shapes
+    shapesInTree.clear();
+    traverse(root.children[0]);
+    EXPECT_EQ(shapesInTree.size(), 3);
+
+    // Expect that the second child contains the last 3 shapes
+    shapesInTree.clear();
+    traverse(root.children[1]);
+    EXPECT_EQ(shapesInTree.size(), 3);
+}
+
 // TODO: Write a test that indicates the BVH is actually being built with the SAH in mind
 
 TEST(SAHandLongestExtentTest, SurfaceArea) {

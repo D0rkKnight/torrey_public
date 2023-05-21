@@ -9,12 +9,12 @@ Real cu_utils::surfaceArea(const BoundingBox& box) {
     return 2.0f * (d.x * d.y + d.x * d.z + d.y * d.z);
 }
 
-Real cu_utils::intersectCost(int numPrimitives) {
-    return 1.0f;
+Real cu_utils::intersectCost() {
+    return 1;
 }
 
-Real cu_utils::traversalCost(int numPrimitives) {
-    return 1.0f;
+Real cu_utils::traversalCost() {
+    return 0.125f;
 }
 
 bool cu_utils::compareCentroid(const BVHPrimitiveInfo& a, const BVHPrimitiveInfo& b, int dim) {
@@ -30,12 +30,19 @@ void cu_utils::computeBuckets(const std::vector<BVHPrimitiveInfo>& primitiveInfo
         if (bucketIndex == NUM_BUCKETS) {
             bucketIndex--;
         }
+
+        if (!buckets[bucketIndex].initialized) {
+            buckets[bucketIndex].bounds = primitiveInfo[i].bounds;
+            buckets[bucketIndex].initialized = true;
+        } else {
+            buckets[bucketIndex].bounds = bounds + primitiveInfo[i].bounds;
+        }
+
         buckets[bucketIndex].count++;
-        buckets[bucketIndex].bounds = bounds + primitiveInfo[i].bounds;
     }
 };
 
-Real cu_utils::computeBucketCost(const BucketInfo* buckets, int splitBucket, const BoundingBox& bounds, const int NUM_BUCKETS) {
+Real cu_utils::computeBucketCost(const BucketInfo buckets[], int splitBucket, const BoundingBox& bounds, const int NUM_BUCKETS) {
     BoundingBox b0, b1;
     Real count0 = 0, count1 = 0;
 
@@ -45,6 +52,8 @@ Real cu_utils::computeBucketCost(const BucketInfo* buckets, int splitBucket, con
 
     bool initialized = false;
     for (int j = 0; j <= splitBucket; j++) {
+        if (!buckets[j].initialized) continue;
+
         if (!initialized) {
             b0 = buckets[j].bounds;
             count0 = buckets[j].count;
@@ -57,6 +66,8 @@ Real cu_utils::computeBucketCost(const BucketInfo* buckets, int splitBucket, con
 
     initialized = false;
     for (int j = splitBucket + 1; j < NUM_BUCKETS; j++) {
+        if (!buckets[j].initialized) continue;
+
         if (!initialized) {
             b1 = buckets[j].bounds;
             count1 = buckets[j].count;
@@ -67,7 +78,9 @@ Real cu_utils::computeBucketCost(const BucketInfo* buckets, int splitBucket, con
         b1 = b1 + buckets[j].bounds;
         count1 += buckets[j].count;
     }
-    return 0.125f + (count0 * surfaceArea(b0) + count1 * surfaceArea(b1)) / surfaceArea(bounds);
+    Real cost = traversalCost() + (intersectCost() * count0 * surfaceArea(b0) + intersectCost() * count1 * surfaceArea(b1)) / surfaceArea(bounds);
+
+    return cost;
 };
 
 int cu_utils::partitionPrimitives(std::vector<BVHPrimitiveInfo>& primitiveInfo, int start, int end, const BoundingBox& bounds, int dim, int minCostSplitBucket, const int NUM_BUCKETS) {

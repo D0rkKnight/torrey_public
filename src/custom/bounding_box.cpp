@@ -156,9 +156,10 @@ BVHNode BVHNode::buildTree(std::vector<BVHPrimitiveInfo> &primInfo, int start, i
         }
     }
 
-    Real leafCost = intersectCost(numPrimitives);
+    Real leafCost = intersectCost() * numPrimitives;
     if (numPrimitives > 4 && minCost < leafCost) {
-        partitionPrimitives(primInfo, start, end, root.box, longestAxis, minCostSplitBucket);
+        // Overwrite mid to the SAH split
+        mid = partitionPrimitives(primInfo, start, end, root.box, longestAxis, minCostSplitBucket);
     }
     else {
         // Dump to one node
