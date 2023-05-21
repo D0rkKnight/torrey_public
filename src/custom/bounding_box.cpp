@@ -124,8 +124,25 @@ BVHNode BVHNode::buildTree(std::vector<BVHPrimitiveInfo> &primInfo, int start, i
     int numPrimitives = end - start;
     int mid = start + (end - start) / 2;
 
-    // Now that we have the prerequisite information, begin building the tree
-    if (numPrimitives <= 4)
+    // Perform SAH
+    BucketInfo buckets[NUM_BUCKETS];
+    computeBuckets(primInfo, start, end, root.box, longestAxis, buckets);
+
+    Real cost[NUM_BUCKETS - 1];
+    for (int i = 0; i < NUM_BUCKETS - 1; i++) {
+        cost[i] = computeBucketCost(buckets, i, root.box);
+    }
+
+    // If everything fills into only 1 bucket, split midwise
+    int populatedBuckets = 0;
+    for (int i = 0; i < NUM_BUCKETS - 1; i++) {
+        if (buckets[i].count > 0) {
+            populatedBuckets++;
+        }
+    }
+
+    // Split midwise if there are too few shapes or if everything falls into one bucket (so our cost function doesn't work)
+    if (numPrimitives <= 4 || populatedBuckets == 1)
     {
         // Sort the shapes by the longest axis
         std::sort(primInfo.begin()+start, primInfo.begin()+mid , [longestAxis](BVHPrimitiveInfo a, BVHPrimitiveInfo b)
@@ -138,15 +155,6 @@ BVHNode BVHNode::buildTree(std::vector<BVHPrimitiveInfo> &primInfo, int start, i
         return root;
     }
 
-    // Perform SAH
-    BucketInfo buckets[NUM_BUCKETS];
-    computeBuckets(primInfo, start, end, root.box, longestAxis, buckets);
-
-    Real cost[NUM_BUCKETS - 1];
-    for (int i = 0; i < NUM_BUCKETS - 1; i++) {
-        cost[i] = computeBucketCost(buckets, i, root.box);
-    }
-
     Real minCost = cost[0];
     int minCostSplitBucket = 0;
     for (int i = 1; i < NUM_BUCKETS - 1; i++) {
@@ -157,8 +165,9 @@ BVHNode BVHNode::buildTree(std::vector<BVHPrimitiveInfo> &primInfo, int start, i
     }
 
     Real leafCost = intersectCost() * numPrimitives;
-    if (numPrimitives > 4 && minCost < leafCost) {
+    if (numPrimitives > 4 || minCost < leafCost) {
         // Overwrite mid to the SAH split
+        // If no preference is found (perhaps because there is a big plane stretching the space), split midwise.
         mid = partitionPrimitives(primInfo, start, end, root.box, longestAxis, minCostSplitBucket);
     }
     else {

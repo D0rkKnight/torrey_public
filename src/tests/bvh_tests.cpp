@@ -167,8 +167,8 @@ TEST(SAHandPartitionTest, ComputeBucketCost) {
     // Test computing bucket cost for a split
     const int NUM_BUCKETS = 2;
     BucketInfo buckets[NUM_BUCKETS] = {
-        {1, BoundingBox(Vector3(-1.0f, -2.0f, -1.0f), Vector3(1.0f, 0.0f, 1.0f))},
-        {2, BoundingBox(Vector3(-2.0f, 0.0f, -2.0f), Vector3(2.0f, 2.0f, 2.0f))}
+        {1, BoundingBox(Vector3(-1.0f, -2.0f, -1.0f), Vector3(1.0f, 0.0f, 1.0f)), true},
+        {2, BoundingBox(Vector3(-2.0f, 0.0f, -2.0f), Vector3(2.0f, 2.0f, 2.0f)), true}
     };
     BoundingBox bounds(Vector3(-3.0f, -3.0f, -3.0f), Vector3(3.0f, 3.0f, 3.0f));
     Real cost = computeBucketCost(buckets, 1, bounds, NUM_BUCKETS);

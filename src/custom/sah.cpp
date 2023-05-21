@@ -35,7 +35,7 @@ void cu_utils::computeBuckets(const std::vector<BVHPrimitiveInfo>& primitiveInfo
             buckets[bucketIndex].bounds = primitiveInfo[i].bounds;
             buckets[bucketIndex].initialized = true;
         } else {
-            buckets[bucketIndex].bounds = bounds + primitiveInfo[i].bounds;
+            buckets[bucketIndex].bounds = buckets[bucketIndex].bounds + primitiveInfo[i].bounds;
         }
 
         buckets[bucketIndex].count++;
@@ -94,5 +94,7 @@ int cu_utils::partitionPrimitives(std::vector<BVHPrimitiveInfo>& primitiveInfo, 
         return bucketIndex <= minCostSplitBucket;
     };
     BVHPrimitiveInfo* midPtr = std::partition(primitiveInfo.data() + start, primitiveInfo.data() + end, partitionFunc);
-    return midPtr - primitiveInfo.data();
+    auto mid = midPtr - primitiveInfo.data();
+
+    return mid;
 }
