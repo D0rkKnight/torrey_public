@@ -1,3 +1,5 @@
+SAH search space should be based on centroids, not total extents
+
 Test Suite Setup
 1. Get some basic tests running (way to incrementally dev these complex algorithms)
 
