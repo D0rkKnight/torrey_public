@@ -3,6 +3,7 @@
 #include "shapes.h"
 #include <iostream>
 #include "utils.h"
+#include "sah.h"
 
 using namespace cu_utils;
 
@@ -90,7 +91,7 @@ BVHNode BVHNode::buildTree(std::vector<Shape *> shapes) {
     return buildTree(primInfo, 0, shapes.size());
 }
 
-BVHNode BVHNode::buildTree(std::vector<BVHPrimitiveInfo> primInfo, int start, int end)
+BVHNode BVHNode::buildTree(std::vector<BVHPrimitiveInfo> &primInfo, int start, int end)
 {
     // If it's just one shape, return a node with that shape
     // Wonder if this catches all leaf cases? :/
@@ -120,18 +121,57 @@ BVHNode BVHNode::buildTree(std::vector<BVHPrimitiveInfo> primInfo, int start, in
     // Get the longer axis and sort the shapes by that axis
     Vector3 dims = root.box.maxc - root.box.minc;
     int longestAxis = longestExtent(dims);
-
-    // Sort the shapes by the longest axis
+    int numPrimitives = end - start;
     int mid = start + (end - start) / 2;
 
-    std::sort(primInfo.begin()+start, primInfo.begin()+mid , [longestAxis](BVHPrimitiveInfo a, BVHPrimitiveInfo b)
-              { return a.bounds.minc[longestAxis] < b.bounds.minc[longestAxis]; });
+    // Now that we have the prerequisite information, begin building the tree
+    if (numPrimitives <= 4)
+    {
+        // Sort the shapes by the longest axis
+        std::sort(primInfo.begin()+start, primInfo.begin()+mid , [longestAxis](BVHPrimitiveInfo a, BVHPrimitiveInfo b)
+                { return a.bounds.minc[longestAxis] < b.bounds.minc[longestAxis]; });
 
-    // Split the shapes into two groups
+        // Recursively build the tree
+        root.children.push_back(buildTree(primInfo, start, mid));
+        root.children.push_back(buildTree(primInfo, mid, end));
 
-    // Recursively build the tree
-    root.children.push_back(buildTree(primInfo, start, mid));
-    root.children.push_back(buildTree(primInfo, mid, end));
+        return root;
+    }
+
+    // Perform SAH
+    BucketInfo buckets[NUM_BUCKETS];
+    computeBuckets(primInfo, start, end, root.box, longestAxis, buckets);
+
+    Real cost[NUM_BUCKETS - 1];
+    for (int i = 0; i < NUM_BUCKETS - 1; i++) {
+        cost[i] = computeBucketCost(buckets, i, root.box);
+    }
+
+    Real minCost = cost[0];
+    int minCostSplitBucket = 0;
+    for (int i = 1; i < NUM_BUCKETS - 1; i++) {
+        if (cost[i] < minCost) {
+            minCost = cost[i];
+            minCostSplitBucket = i;
+        }
+    }
+
+    Real leafCost = intersectCost(numPrimitives);
+    if (numPrimitives > 4 && minCost < leafCost) {
+        partitionPrimitives(primInfo, start, end, root.box, longestAxis, minCostSplitBucket);
+    }
+    else {
+        // Dump to one node
+        for (int i = start; i < end; i++) {
+            root.shapes.push_back(primInfo[i].primitiveRef);
+        }
+        return root;
+    }
+
+    root.children = {
+        buildTree(primInfo, start, mid), 
+        buildTree(primInfo, mid, end)
+    };
 
     return root;
 }

@@ -44,7 +44,7 @@ namespace cu_utils
 
         RayHit checkHit(const Ray &ray) const;
 
-        static BVHNode buildTree(std::vector<BVHPrimitiveInfo> primInfo, int start, int end);
+        static BVHNode buildTree(std::vector<BVHPrimitiveInfo> &primInfo, int start, int end);
         static BVHNode buildTree(std::vector<Shape *> shapes);
 
         static int scansMade;

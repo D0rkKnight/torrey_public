@@ -80,6 +80,8 @@ TEST(BVHTest, ContainsAllShapes) {
     }
 }
 
+// TODO: Write a test that indicates the BVH is actually being built with the SAH in mind
+
 TEST(SAHandLongestExtentTest, SurfaceArea) {
     // Test surface area of a unit cube
     BoundingBox box(Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.5f, 0.5f, 0.5f));
