@@ -186,3 +186,61 @@ TEST(SAHandPartitionTest, PartitionPrimitives) {
     int mid = partitionPrimitives(primitiveInfo, 0, 3, bounds, 0, 7);
     EXPECT_EQ(mid, 1);
 }
+
+TEST(BoundingBox, HitTest) {
+    // Test case 1: Ray hits bounding box
+    Ray ray(Vector3(0.0f, 0.0f, -5.0f), Vector3(0.0f, 0.0f, 1.0f));
+    BoundingBox box(Vector3(-1.0f, -1.0f, -1.0f), Vector3(1.0f, 1.0f, 1.0f));
+    float tmin = 0.0f, tmax = std::numeric_limits<float>::infinity();
+    bool hit = box.checkHit(ray, tmin, tmax);
+    EXPECT_TRUE(hit);
+
+    // Test case 2: Ray misses bounding box
+    ray = Ray(Vector3(0.0f, 0.0f, -5.0f), normalize(Vector3(1.0f, 1.0f, 1.0f)));
+    hit = box.checkHit(ray, tmin, tmax);
+    EXPECT_FALSE(hit);
+
+    // Test case 3: Ray would hit but tmax is too small
+    ray = Ray(Vector3(0.0f, 0.0f, -5.0f), Vector3(0.0f, 0.0f, 1.0f));
+    tmax = 1.0f;
+
+    hit = box.checkHit(ray, tmin, tmax);
+    EXPECT_FALSE(hit);
+
+    // Test case 4: Ray would hit but tmin is too large
+    ray = Ray(Vector3(0.0f, 0.0f, -5.0f), Vector3(0.0f, 0.0f, 1.0f));
+    tmin = 10.0f;
+    tmax = std::numeric_limits<float>::infinity();
+
+    hit = box.checkHit(ray, tmin, tmax);
+    EXPECT_FALSE(hit);
+}
+
+TEST(BVHNode, CheckHit) {
+    // Test case 1: Ray hits closest object
+    Ray ray(Vector3(0.0f, 0.0f, -5.0f), Vector3(0.0f, 0.0f, 1.0f));
+    Sphere *sphere1 = new Sphere(Vector3{0.0f, 0.0f, 0.0f}, 1.0f, 0);
+    Sphere *sphere2 = new Sphere(Vector3{0.0f, 0.0f, 2.0f}, 1.0f, 0);
+    BVHNode node = BVHNode::buildTree({sphere1, sphere2});
+    RayHit hit = node.checkHit(ray, 0.0f, std::numeric_limits<float>::infinity());
+    EXPECT_TRUE(hit.hit);
+    EXPECT_NEAR((ray * hit.t).z, -1.0f, 1e-6);
+
+    // Test case 2: Ray hits farthest object
+    ray = Ray(Vector3(0.0f, 0.0f, -5.0f), Vector3(0.0f, 0.0f, 1.0f));
+    sphere1 = new Sphere(Vector3{0.0f, 0.0f, 10.0f}, 1.0f, 0);
+    sphere2 = new Sphere(Vector3{0.0f, 0.0f, 0.0f}, 1.0f, 0);
+    node = BVHNode::buildTree({sphere1, sphere2});
+    hit = node.checkHit(ray, 7.0f, std::numeric_limits<float>::infinity());
+    EXPECT_TRUE(hit.hit);
+    EXPECT_NEAR((ray * hit.t).z, 9.0f, 1e-6);
+
+    // // Test case 3: Ray hits both objects
+    // ray = Ray(Vector3(0.0f, 0.0f, -5.0f), Vector3(0.0f, 0.0f, 1.0f));
+    // sphere1 = new Sphere(Vector3{0.0f, 0.0f, 0.0f}, 1.0f, 0);
+    // sphere2 = new Sphere(Vector3{0.0f, 0.0f, 2.0f}, 1.0f, 0);
+    // node = BVHNode::buildTree({sphere1, sphere2});
+    // hit = node.checkHit(ray, 0.0f, std::numeric_limits<float>::infinity());
+    // EXPECT_TRUE(hit.hit);
+    // EXPECT_NEAR((ray * hit.t).z, 1.0f, 1e-6);
+}

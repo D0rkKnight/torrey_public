@@ -145,7 +145,7 @@ BVHNode BVHNode::buildTree(std::vector<BVHPrimitiveInfo> &primInfo, int start, i
     if (numPrimitives <= 4 || populatedBuckets == 1)
     {
         // Sort the shapes by the longest axis
-        std::sort(primInfo.begin()+start, primInfo.begin()+mid , [longestAxis](BVHPrimitiveInfo a, BVHPrimitiveInfo b)
+        std::nth_element(primInfo.begin()+start, primInfo.begin()+mid, primInfo.begin()+end , [longestAxis](BVHPrimitiveInfo a, BVHPrimitiveInfo b)
                 { return a.bounds.minc[longestAxis] < b.bounds.minc[longestAxis]; });
 
         // Recursively build the tree
@@ -186,12 +186,12 @@ BVHNode BVHNode::buildTree(std::vector<BVHPrimitiveInfo> &primInfo, int start, i
     return root;
 }
 
-RayHit BVHNode::checkHit(const Ray &ray) const
+RayHit BVHNode::checkHit(const Ray &ray, Real mint, Real maxt) const
 {
     // Check for bounding box effectiveness.
     // scansMade++; I believe these hurt performance by breaking parallelism
 
-    if (!box.checkHit(ray))
+    if (!box.checkHit(ray, mint, maxt))
     {
         return RayHit();
     }
@@ -202,12 +202,15 @@ RayHit BVHNode::checkHit(const Ray &ray) const
     {
         // Go thru shapes and get best t
         RayHit bestHit = RayHit();
+        Real farthest = std::numeric_limits<Real>::max();
+
         for (int i = 0; i < shapes.size(); i++)
         {
-            RayHit hit = shapes[i]->checkHit(ray);
+            RayHit hit = shapes[i]->checkHit(ray, 0, farthest);
             if (hit.hit && (bestHit.hit == false || hit.t < bestHit.t))
             {
                 bestHit = hit;
+                farthest = hit.t;
             }
         }
 
@@ -216,13 +219,15 @@ RayHit BVHNode::checkHit(const Ray &ray) const
 
     // Go over every child and compare their rayhit dists
     RayHit bestHit = RayHit();
+    Real farthest = maxt;
 
     for (int i = 0; i < children.size(); i++)
     {
-        RayHit hit = children[i].checkHit(ray);
+        RayHit hit = children[i].checkHit(ray, mint, farthest);
         if (hit.hit && (bestHit.hit == false || hit.t < bestHit.t))
         {
             bestHit = hit;
+            farthest = hit.t;
         }
     }
 

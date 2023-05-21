@@ -42,7 +42,7 @@ namespace cu_utils
         BVHNode(BoundingBox box, std::vector<Shape *> shapes, std::vector<BVHNode> children); // Children are written to afterwards
         BVHNode();
 
-        RayHit checkHit(const Ray &ray) const;
+        RayHit checkHit(const Ray &ray, Real mint, Real maxt) const;
 
         static BVHNode buildTree(std::vector<BVHPrimitiveInfo> &primInfo, int start, int end);
         static BVHNode buildTree(std::vector<Shape *> shapes);

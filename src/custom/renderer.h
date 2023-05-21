@@ -256,7 +256,7 @@ namespace cu_utils
             // What it's supposed to do: Check the object tree and render
             BVHNode::boxesHit = 0;
             BVHNode::scansMade = 0;
-            RayHit bestHit = objRoot.checkHit(ray);
+            RayHit bestHit = objRoot.checkHit(ray, 0, std::numeric_limits<Real>::max());
 
             // std::cout << "Boxes hit: " << BBNode::boxesHit << std::endl;
             // std::cout << "Scans made: " << BBNode::scansMade << std::endl;

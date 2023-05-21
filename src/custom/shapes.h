@@ -18,7 +18,7 @@ namespace cu_utils
         int material_id;
         const AreaLight *areaLight; // The area light that this shape is
 
-        virtual RayHit checkHit(const Ray &ray) const = 0;
+        virtual RayHit checkHit(const Ray &ray, const Real mint, const Real maxt) const = 0;
         virtual BoundingBox getBoundingBox() const = 0;
         virtual Ray sampleSurface(int samples, Real &jacobian, pcg32_state &rng) const;
     };
@@ -30,7 +30,7 @@ namespace cu_utils
         Real radius;
 
         Sphere(Vector3 center, Real radius, int material_id);
-        RayHit checkHit(const Ray &ray) const override;
+        RayHit checkHit(const Ray &ray, const Real mint, const Real maxt) const override;
         BoundingBox getBoundingBox() const override;
         Ray sampleSurface(int samples, Real &jacobian, pcg32_state &rng) const override;
     };
@@ -43,7 +43,7 @@ namespace cu_utils
         Vector3 n0, n1, n2;
 
         Triangle(Vector3 v0, Vector3 v1, Vector3 v2, int material_id);
-        RayHit checkHit(const Ray &ray) const override;
+        RayHit checkHit(const Ray &ray, const Real mint, const Real maxt) const override;
         BoundingBox getBoundingBox() const override;
         Ray sampleSurface(int samples, Real &jacobian, pcg32_state &rng) const override;
 
