@@ -9,6 +9,8 @@ Ray::Ray(Vector3 origin, Vector3 dir)
 {
 }
 
+Ray::Ray() : origin(Vector3{0, 0, 0}), dir(Vector3{0, 0, 0}) {}
+
 // At operation
 Vector3 Ray::operator*(Real t) const
 {

@@ -182,24 +182,15 @@ namespace cu_utils
                 case Mode::LAMBERT:
 
                 { // Check every light in the scene
-                    color = matte(this, ray, bestHit, scene, objRoot, rng);
+                    color = matte(this, ray, bestHit, scene, objRoot, rng, depth);
                 }
 
                 break;
 
                 case Mode::MATTE_REFLECT:
                 {
-
-                    // If the object has an area light and the geometric normal is correct, just return the light color
-                    if (bestHit.sphere->areaLight != nullptr && !bestHit.backface)
-                    {
-                        color = bestHit.sphere->areaLight->intensity;
-                    }
-                    else
-                    {
-                        Material *material = scene.materials[bestHit.sphere->material_id];
-                        color = material->shadePoint(this, ray, bestHit, scene, objRoot, rng, depth);
-                    }
+                    Material *material = scene.materials[bestHit.sphere->material_id];
+                    color = material->shadePoint(this, ray, bestHit, scene, objRoot, rng, depth);
                 }
                 break;
                 case Mode::BARYCENTRIC:

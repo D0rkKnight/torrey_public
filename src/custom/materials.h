@@ -23,16 +23,27 @@ namespace cu_utils
 
         Material();
 
-        Vector3 getTexColor(Real u, Real v);
+        Vector3 getTexColor(Real u, Real v) const;
         void loadTexture(ParsedImageTexture *texMeta);
 
         virtual Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const;
+
+        // Guessing that if albedo is 0, just don't scatter at all
+        // Writes to scattered and pdf
+        virtual bool scatter(const Ray &ray, const RayHit &hit, Vector3 &albedo, Ray &scattered, Real &pdf, pcg32_state &rng) const { return false; };
+
+        // Given some ray, hit, and scattered ray, return the probability of scattering
+        virtual Real scattering_pdf(const Ray &ray, const RayHit &hit, const Ray &scattered) const { return 0; };
     };
 
     struct LambertMaterial : public Material
     {
         LambertMaterial();
         Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const override;
+
+        bool scatter(const Ray &ray, const RayHit &hit, Vector3 &albedo, Ray &scattered, Real &pdf, pcg32_state &rng) const;
+
+        Real scattering_pdf(const Ray &ray, const RayHit &hit, const Ray &scattered) const;
     };
 
     struct MirrorMaterial : public Material
@@ -47,7 +58,7 @@ namespace cu_utils
         Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const override;
     };
 
-    Vector3 matte(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng);
+    Vector3 matte(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth);
     Vector3 mirror(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth);
     Vector3 plastic(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth);
 

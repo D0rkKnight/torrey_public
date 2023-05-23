@@ -1,21 +1,9 @@
-Test Suite Setup
-1. Get some basic tests running (way to incrementally dev these complex algorithms)
-
 BVH optimization
-1. Use std::nth_element or std::partition for BVH construction
-    - BVH completeness tests (making sure that outcome is fully represented)
-    - Partition correctness tests
-2. SAH (with binary branching and single child leaves)
-    - Independent SAH algorithm
-    - SAH correctness test
 3. Multi-child leaves
 4. n-ary branching
 5. Flatten BVH memory representation
 6. Prefer closer bounding boxes
 7. Sort by center rather than minimum corner
 
-Note: should make this in a test space first I reckon
-Just link in from the hw? should work fine
-
-Other optimizations:
-1. reorder shape elements in subrange rather than duping
+Refactors
+- Think on emission as material property

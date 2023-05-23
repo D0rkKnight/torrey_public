@@ -3,6 +3,7 @@
 #include "../vector.h"
 #include "../matrix.h"
 #include "ray.h"
+#include "pcg.h"
 #include <cstdlib>
 
 namespace cu_utils
@@ -82,4 +83,13 @@ namespace cu_utils
             return 2;
         }
     };
+
+    inline Vector3 randomUnitVector(pcg32_state &rng) {
+        Vector3 v;
+        do {
+            v = Vector3{next_pcg32_real<Real>(rng), next_pcg32_real<Real>(rng), next_pcg32_real<Real>(rng)} * 2.0 - Vector3{1, 1, 1};
+        } while (length_squared(v) < 1e-6);
+
+        return normalize(v);
+    }
 }

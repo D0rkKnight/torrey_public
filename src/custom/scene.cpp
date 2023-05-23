@@ -205,7 +205,7 @@ void Scene::addTexture(ParsedImageTexture *image_texture)
 }
 
 // TODO: Move this to the material src probably
-Vector3 Material::getTexColor(Real u, Real v)
+Vector3 Material::getTexColor(Real u, Real v) const
 {
 
     if (texMeta == nullptr)

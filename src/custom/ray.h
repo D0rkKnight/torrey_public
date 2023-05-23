@@ -13,6 +13,7 @@ namespace cu_utils
     {
     public:
         Ray(Vector3 origin, Vector3 dir);
+        Ray();
 
         Vector3 origin;
         Vector3 dir; // dir should be normalized
