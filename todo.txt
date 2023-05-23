@@ -1,3 +1,5 @@
+SAH search space should be based on centroids, not total extents
+
 BVH optimization
 3. Multi-child leaves
 4. n-ary branching
