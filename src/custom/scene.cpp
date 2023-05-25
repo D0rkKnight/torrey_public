@@ -149,6 +149,13 @@ Scene::Scene(const ParsedScene &parsed)
             colSrc = plastic->reflectance;
             material->eta = plastic->eta;
         }
+        else if (auto phong = std::get_if<ParsedPhong>(&parsedMaterial))
+        {
+            PhongMaterial *pmat = new PhongMaterial();
+            colSrc = phong->reflectance;
+            pmat->exp = phong->exponent;
+            material = pmat;
+        }
         else
         {
             std::cerr << "Unknown material type" << std::endl;
