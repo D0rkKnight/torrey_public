@@ -156,6 +156,7 @@ Scene::Scene(const ParsedScene &parsed)
         }
         material->scene = this;
         assignParsedColor(material, colSrc);
+        material->finish();
         materials.push_back(material);
     }
 

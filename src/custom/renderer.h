@@ -189,6 +189,14 @@ namespace cu_utils
 
                 case Mode::MATTE_REFLECT:
                 {
+
+                    if (bestHit.sphere->material_id < 0) {
+                        if (bestHit.sphere->areaLight != nullptr) {
+                            color = bestHit.sphere->areaLight->intensity;
+                        }
+                        break;
+                    }
+
                     Material *material = scene.materials[bestHit.sphere->material_id];
                     color = material->shadePoint(this, ray, bestHit, scene, objRoot, rng, depth);
                 }

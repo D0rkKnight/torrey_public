@@ -26,21 +26,24 @@ Vector3 cu_utils::plastic(const Renderer *renderer, const Ray ray, const RayHit 
     Material *material = scene.materials[bestHit.sphere->material_id];
 
     // Compute reflect component
-    Vector3 albedo = material->getTexColor(bestHit.u, bestHit.v);
     Ray reflectRay = getBounceRay(ray, bestHit);
 
     // Recurse
-    Vector3 fresnel = fresnelSchlick(albedo, bestHit.normal, reflectRay.dir);
+    Real fresnelN = 1.5;
+    Real Fz = (fresnelN - 1) * (fresnelN - 1) / ((fresnelN + 1) * (fresnelN + 1));
+    Vector3 fresnel = fresnelSchlick(Vector3{Fz, Fz, Fz}, bestHit.normal, reflectRay.dir);
 
     // Use unbiased estimation for diffuse vs specular
-    if (next_pcg32_real<Real>(rng) > 1 - length(fresnel))
+    // Get average of fresnel for weighting (just fresnel.x since we use uniform color for F0)
+    Real avgFresnel = (fresnel.x + fresnel.y + fresnel.z) / 3;
+    if (next_pcg32_real<Real>(rng) > avgFresnel)
         return matte(renderer, ray, bestHit, scene, objRoot, rng, depth);
 
 
     Vector3 reflectColor = renderer->getPixelColor(reflectRay, scene, objRoot, rng, depth - 1);
-    Vector3 specular = hadamard(fresnel, reflectColor);
+    // Vector3 specular = hadamard(fresnel, reflectColor);
 
-    return specular;
+    return reflectColor;
 }
 
 // Write in material methods
@@ -75,3 +78,12 @@ cu_utils::Material::Material()
 
 cu_utils::MirrorMaterial::MirrorMaterial() : Material(){};
 cu_utils::PlasticMaterial::PlasticMaterial() : Material(){};
+
+void PlasticMaterial::finish()
+{
+    this->backingLambert = LambertMaterial();
+    this->backingLambert.flatColor = this->flatColor;
+    this->backingLambert.scene = this->scene;
+    this->backingLambert.eta = this->eta;
+    this->backingLambert.texMeta = this->texMeta;
+}

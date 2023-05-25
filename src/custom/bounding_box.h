@@ -19,6 +19,8 @@ namespace cu_utils
         bool checkHit(const Ray &ray) const;
         bool checkHit(const Ray &ray, Real tmin, Real tmax) const;
 
+        Vector3 centroid() const;
+
         // Returns the union of the two BBs
         BoundingBox operator+(const BoundingBox &other) const;
     };

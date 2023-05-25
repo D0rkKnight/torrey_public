@@ -25,8 +25,8 @@ Image3 hw_4_1(const std::vector<std::string> &params) {
     renderer.maxDepth = max_depth;
 
     // Make it faster for dev
-    // renderer.maxDepth = 10;
-    // scene.samples_per_pixel = 16;
+    renderer.maxDepth = 10;
+    scene.samples_per_pixel = 16;
 
     return renderer.render(scene);
 }

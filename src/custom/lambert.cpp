@@ -14,6 +14,10 @@ Vector3 cu_utils::matte(const Renderer *renderer, const Ray ray, const RayHit be
 {
     Material *material = scene.materials[bestHit.sphere->material_id];
 
+    // Check if material is a plastic and do this weird forced fallback thing
+    if (PlasticMaterial *plastic = dynamic_cast<PlasticMaterial *>(material))
+        material = &plastic->backingLambert;
+
     Vector3 color = Vector3{0, 0, 0};
     Vector3 hit = ray * bestHit.t;
 
@@ -27,6 +31,10 @@ Vector3 cu_utils::matte(const Renderer *renderer, const Ray ray, const RayHit be
     Vector3 emitted = bestHit.sphere->areaLight ? bestHit.sphere->areaLight->intensity : Vector3{0, 0, 0};
     Real pdf;
     Vector3 albedo;
+
+    // Make sure we hit on the right side, otherwise emitted light is 0
+    if (bestHit.backface)
+        emitted = Vector3{0, 0, 0};
 
     if (!material->scatter(ray, bestHit, albedo, scattered, pdf, rng))
         return emitted;

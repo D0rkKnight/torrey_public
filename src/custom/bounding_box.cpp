@@ -13,6 +13,11 @@ BoundingBox::BoundingBox(Vector3 min, Vector3 max)
     this->maxc = max;
 }
 
+Vector3 BoundingBox::centroid() const
+{
+    return (minc + maxc) / 2.0;
+}
+
 BoundingBox::BoundingBox()
 {
     minc = Vector3{std::numeric_limits<Real>::max(), std::numeric_limits<Real>::max(), std::numeric_limits<Real>::max()};
@@ -73,7 +78,7 @@ BVHPrimitiveInfo::BVHPrimitiveInfo(Shape *primitiveRef, BoundingBox bounds)
 {
     this->primitiveRef = primitiveRef;
     this->bounds = bounds;
-    this->centroid = (bounds.minc + bounds.maxc) / 2.0;
+    this->centroid = bounds.centroid();
 }
 
 // Give shapes and precompute bounding boxes
@@ -146,7 +151,7 @@ BVHNode BVHNode::buildTree(std::vector<BVHPrimitiveInfo> &primInfo, int start, i
     {
         // Sort the shapes by the longest axis
         std::nth_element(primInfo.begin()+start, primInfo.begin()+mid, primInfo.begin()+end , [longestAxis](BVHPrimitiveInfo a, BVHPrimitiveInfo b)
-                { return a.bounds.minc[longestAxis] < b.bounds.minc[longestAxis]; });
+                { return a.bounds.centroid()[longestAxis] < b.bounds.centroid()[longestAxis]; });
 
         // Recursively build the tree
         root.children.push_back(buildTree(primInfo, start, mid));

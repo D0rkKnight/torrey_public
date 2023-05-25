@@ -1,4 +1,5 @@
-SAH search space should be based on centroids, not total extents
+Bugfix:
+- Area light without material isn't renderable
 
 BVH optimization
 3. Multi-child leaves
@@ -9,3 +10,4 @@ BVH optimization
 
 Refactors
 - Think on emission as material property
+- Have material methods use object properties rather than getting it from hit points

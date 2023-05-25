@@ -34,6 +34,9 @@ namespace cu_utils
 
         // Given some ray, hit, and scattered ray, return the probability of scattering
         virtual Real scattering_pdf(const Ray &ray, const RayHit &hit, const Ray &scattered) const { return 0; };
+
+        // Locks in values for child materials
+        virtual void finish() {};
     };
 
     struct LambertMaterial : public Material
@@ -54,8 +57,12 @@ namespace cu_utils
 
     struct PlasticMaterial : public Material
     {
+        // Time to become inspired
+        LambertMaterial backingLambert;
+
         PlasticMaterial();
         Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const override;
+        void finish() override;
     };
 
     Vector3 matte(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth);

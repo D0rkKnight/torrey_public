@@ -24,9 +24,15 @@ bool cu_utils::compareCentroid(const BVHPrimitiveInfo& a, const BVHPrimitiveInfo
 /**
  * Sorts into NUM_BUCKETS
 */
-void cu_utils::computeBuckets(const std::vector<BVHPrimitiveInfo>& primitiveInfo, int start, int end, const BoundingBox& bounds, int dim, BucketInfo* buckets, const int NUM_BUCKETS) {
+void cu_utils::computeBuckets(const std::vector<BVHPrimitiveInfo>& primitiveInfo, int start, int end, const BoundingBox& cbounds, int dim, BucketInfo* buckets, const int NUM_BUCKETS) {
     for (int i = start; i < end; i++) {
-        int bucketIndex = NUM_BUCKETS * ((primitiveInfo[i].centroid[dim] - bounds.minc[dim]) / (bounds.maxc[dim] - bounds.minc[dim]));
+        int bucketIndex = NUM_BUCKETS * ((primitiveInfo[i].centroid[dim] - cbounds.minc[dim]) / (cbounds.maxc[dim] - cbounds.minc[dim]));
+
+        // If the bound range is 0, then the bucket index will be NaN
+        if (cbounds.maxc[dim] - cbounds.minc[dim] <= 0.0) {
+            bucketIndex = 0;
+        }
+
         if (bucketIndex == NUM_BUCKETS) {
             bucketIndex--;
         }
