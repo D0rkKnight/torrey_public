@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "ray.h"
 #include "renderer.h"
+#include "onb.h"
 #include <iostream>
 
 using namespace cu_utils;
@@ -54,13 +55,11 @@ Vector3 cu_utils::LambertMaterial::shadePoint(const Renderer *renderer, const Ra
 
 // Borrowed from Peter Shirley's Ray Tracing in One Weekend
 bool LambertMaterial::scatter(const Ray &ray, const RayHit &hit, Vector3 &alb, Ray &scattered, Real &pdf, pcg32_state &rng) const {
-    Vector3 scatter_direction = hit.normal + randomUnitVector(rng);
-    Vector3 hitp = ray * hit.t;
+    onb uvw;
+    uvw.build_from_w(hit.normal);
+    auto direction = uvw.local(random_cosine_direction(rng));
 
-    // Catch degenerate scatter direction
-    if (length_squared(scatter_direction) < 0.0001)
-        scatter_direction = hit.normal;
-    scattered = Ray(ray * hit.t, normalize(scatter_direction));
+    scattered = Ray(ray * hit.t, normalize(direction));
     alb = getTexColor(hit.u, hit.v);
     pdf = dot(hit.normal, scattered.dir) / MY_PI;
     return true;

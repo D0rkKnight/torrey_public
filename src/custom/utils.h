@@ -92,4 +92,16 @@ namespace cu_utils
 
         return normalize(v);
     }
+
+    inline Vector3 random_cosine_direction(pcg32_state &rng) {
+        auto r1 = next_pcg32_real<Real>(rng);
+        auto r2 = next_pcg32_real<Real>(rng);
+        auto z = sqrt(1-r2);
+
+        auto phi = 2*MY_PI*r1;
+        auto x = cos(phi)*sqrt(r2);
+        auto y = sin(phi)*sqrt(r2);
+
+        return Vector3(x, y, z);
+    }
 }
