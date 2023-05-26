@@ -29,10 +29,11 @@ namespace cu_utils
         virtual Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const;
 
         // Guessing that if albedo is 0, just don't scatter at all
-        // Writes to scattered and pdf
+        // Scatter handles the actual generation of sampling rays
         virtual bool scatter(const Ray &ray, const RayHit &hit, Vector3 &albedo, Ray &scattered, Real &pdf, pcg32_state &rng) const { return false; };
 
-        // Given some ray, hit, and scattered ray, return the probability of scattering
+        // Given a sampling ray, generates the contribution weight for that ray
+        // Will be pointy in BRDFs
         virtual Real scattering_pdf(const Ray &ray, const RayHit &hit, const Ray &scattered) const { return 0; };
 
         // Locks in values for child materials
@@ -69,6 +70,17 @@ namespace cu_utils
         Real exp = 1;
 
         PhongMaterial();
+        Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const override;
+
+        bool scatter(const Ray &ray, const RayHit &hit, Vector3 &albedo, Ray &scattered, Real &pdf, pcg32_state &rng) const;
+        Real scattering_pdf(const Ray &ray, const RayHit &hit, const Ray &scattered) const;
+    };
+
+    struct BlinnPhongMaterial : public Material
+    {
+        Real exp = 1;
+
+        BlinnPhongMaterial();
         Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const override;
 
         bool scatter(const Ray &ray, const RayHit &hit, Vector3 &albedo, Ray &scattered, Real &pdf, pcg32_state &rng) const;
