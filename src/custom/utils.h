@@ -103,5 +103,7 @@ namespace cu_utils
         auto y = sin(phi)*sqrt(r2);
 
         return Vector3(x, y, z);
-    }
+    };
+
+    Real testingDot(const Vector3& a, const Vector3& b);
 }

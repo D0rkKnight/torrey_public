@@ -222,3 +222,36 @@ Ray Shape::sampleSurface(int samples, Real &jacobian, pcg32_state &rng) const
 
     return Ray(Vector3(), Vector3());
 }
+
+Real Sphere::pdfSurface(const Ray &ray) const
+{
+    RayHit hit = checkHit(ray, 0, INFINITY);
+    if (!hit.hit)
+        return 0;
+
+    // Compute the area of the sphere
+    Real area = 4 * MY_PI * radius * radius;
+
+    // Compute the pdf
+    Real pdf = hit.t * hit.t / (dot(-ray.dir, hit.normal) * area);
+
+    // return pdf;
+    // Doubling factor because each ray could have been sampled from the front or back
+    // So the pdf density is actually double for rays
+    return pdf * 2;
+}
+
+Real Triangle::pdfSurface(const Ray &ray) const
+{
+    RayHit hit = checkHit(ray, 0, INFINITY);
+    if (!hit.hit)
+        return 0;
+
+    // Compute the area of the triangle
+    Real area = length<Real>(cross(v1 - v0, v2 - v0)) / 2;
+
+    // Compute the pdf
+    Real pdf = hit.t * hit.t / (dot(-ray.dir, hit.normal) * area);
+
+    return pdf;
+}

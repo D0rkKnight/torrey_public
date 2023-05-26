@@ -42,7 +42,6 @@ Vector3 cu_utils::matte(const Renderer *renderer, const Ray ray, const RayHit be
 
     // Move scatter forwards a bit to avoid self-intersection
     scattered.origin += scattered.dir * 0.0001;
-
     return emitted
          + albedo * material->scattering_pdf(ray, bestHit, scattered)
                   * renderer->getPixelColor(scattered, scene, objRoot, rng, depth - 1) / pdf;

@@ -163,6 +163,13 @@ Scene::Scene(const ParsedScene &parsed)
             pmat->exp = phong->exponent;
             material = pmat;
         }
+        else if (auto phong = std::get_if<ParsedBlinnPhongMicrofacet>(&parsedMaterial))
+        {
+            MicrofacetMaterial *pmat = new MicrofacetMaterial();
+            colSrc = phong->reflectance;
+            pmat->exp = phong->exponent;
+            material = pmat;
+        }
         else
         {
             std::cerr << "Unknown material type" << std::endl;

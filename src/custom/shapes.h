@@ -21,6 +21,7 @@ namespace cu_utils
         virtual RayHit checkHit(const Ray &ray, const Real mint, const Real maxt) const = 0;
         virtual BoundingBox getBoundingBox() const = 0;
         virtual Ray sampleSurface(int samples, Real &jacobian, pcg32_state &rng) const;
+        virtual Real pdfSurface(const Ray &ray) const = 0;
     };
 
     struct Sphere : public Shape
@@ -33,6 +34,7 @@ namespace cu_utils
         RayHit checkHit(const Ray &ray, const Real mint, const Real maxt) const override;
         BoundingBox getBoundingBox() const override;
         Ray sampleSurface(int samples, Real &jacobian, pcg32_state &rng) const override;
+        Real pdfSurface(const Ray &ray) const override;
     };
 
     struct Triangle : public Shape
@@ -46,6 +48,7 @@ namespace cu_utils
         RayHit checkHit(const Ray &ray, const Real mint, const Real maxt) const override;
         BoundingBox getBoundingBox() const override;
         Ray sampleSurface(int samples, Real &jacobian, pcg32_state &rng) const override;
+        Real pdfSurface(const Ray &ray) const override;
 
         // Given a hit, return the barycentric coordinates of the hit
         Vector3 getBarycentric(const Vector3 p) const;

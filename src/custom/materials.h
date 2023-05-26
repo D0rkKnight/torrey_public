@@ -87,6 +87,17 @@ namespace cu_utils
         Real scattering_pdf(const Ray &ray, const RayHit &hit, const Ray &scattered) const;
     };
 
+    struct MicrofacetMaterial : public Material
+    {
+        Real exp = 1;
+
+        MicrofacetMaterial();
+        Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const override;
+
+        bool scatter(const Ray &ray, const RayHit &hit, Vector3 &albedo, Ray &scattered, Real &pdf, pcg32_state &rng) const;
+        Real scattering_pdf(const Ray &ray, const RayHit &hit, const Ray &scattered) const;
+    };
+
     Vector3 matte(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth);
     Vector3 mirror(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth);
     Vector3 plastic(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth);

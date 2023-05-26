@@ -9,9 +9,28 @@
 
 using namespace cu_utils;
 
-cu_utils::BlinnPhongMaterial::BlinnPhongMaterial() : Material(){};
+cu_utils::MicrofacetMaterial::MicrofacetMaterial() : Material(){};
 
-Vector3 cu_utils::BlinnPhongMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const
+Real genGeomShadowMask(const RayHit &bestHit, const Vector3 &dir, const Real exp) {
+    Real cosTheta = dot(bestHit.normal, dir);
+    Real tanTheta = sqrt(1 - cosTheta * cosTheta) / cosTheta;
+    Real a = sqrt(0.5 * exp + 1)/tanTheta;
+    Real geomShadowMask = 0;
+
+    if (dot(dir, bestHit.normal) > 0) {
+        geomShadowMask = 1;
+
+        if (a < 1.6) {
+            geomShadowMask = 3.535 * a + 2.181 * a * a;
+            geomShadowMask /= 1 + 2.276 * a + 2.577 * a * a;
+        }
+    }
+
+    return geomShadowMask;
+}
+
+// Should prolly pass by reference here
+Vector3 cu_utils::MicrofacetMaterial::shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const
 {
     Vector3 color = Vector3{0, 0, 0};
     Vector3 hit = ray * bestHit.t;
@@ -40,17 +59,28 @@ Vector3 cu_utils::BlinnPhongMaterial::shadePoint(const Renderer *renderer, const
     // Get fresnel as well (this makes it different from matte)
     auto half = normalize(scattered.dir + -ray.dir);
     Vector3 fresnel = fresnelSchlick(albedo, scattered.dir, half);
+    Real ndf = (exp+2)/(2*MY_PI) * pow(dot(bestHit.normal, half), exp);
 
-    Real coeff = (exp+2) / (4 * MY_PI * (2-pow(2, -exp/2)));
+    Real geomShadowMask = genGeomShadowMask(bestHit, scattered.dir, exp) *
+                        genGeomShadowMask(bestHit, -ray.dir, exp);
+
+    // Honestly don't think this ever happens but just in case
+    if (dot(scattered.dir, bestHit.normal) <= 0)
+        return Vector3{0, 0, 0};
+
+    Vector3 coeff = fresnel * ndf * geomShadowMask / (4 * dot(bestHit.normal, -ray.dir)) / pdf;
+
+    // if (coeff.x > 1 || coeff.y > 1 || coeff.z > 1)
+    //     std::cout << "Coeff greater than 1: " << coeff << std::endl;
 
     return emitted
-         + fresnel * coeff * pow(dot(bestHit.normal, half), exp)
-        * renderer->getPixelColor(scattered, scene, objRoot, rng, depth - 1) / pdf;
+         + coeff * renderer->getPixelColor(scattered, scene, objRoot, rng, depth - 1);
 }
 
-
-// TODO: Implement Blinn Phong sampling rather than just using Phong sampling
-bool BlinnPhongMaterial::scatter(const Ray &ray, const RayHit &hit, Vector3 &alb, Ray &scattered, Real &pdf, pcg32_state &rng) const {
+/**
+ * Just use Blinn Phong scattering
+*/
+bool MicrofacetMaterial::scatter(const Ray &ray, const RayHit &hit, Vector3 &alb, Ray &scattered, Real &pdf, pcg32_state &rng) const {
     Real u1 = next_pcg32_real<Real>(rng);
     Real u2 = next_pcg32_real<Real>(rng);
 
@@ -74,7 +104,7 @@ bool BlinnPhongMaterial::scatter(const Ray &ray, const RayHit &hit, Vector3 &alb
 
 }
 
-double BlinnPhongMaterial::scattering_pdf(
+double MicrofacetMaterial::scattering_pdf(
     const Ray& r_in, const RayHit& rec, const Ray& scattered
 ) const {
     auto half = normalize(-r_in.dir + scattered.dir);
