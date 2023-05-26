@@ -12,7 +12,7 @@ namespace cu_utils {
         bool initialized = false;
     };
 
-    const int NUM_BUCKETS = 12;
+    const static int DEF_NUM_BUCKETS = 12;
 
     Real surfaceArea(const BoundingBox& box);
     Real intersectCost();
@@ -23,10 +23,10 @@ namespace cu_utils {
     /**
      * Sorts into NUM_BUCKETS
     */
-    void computeBuckets(const std::vector<BVHPrimitiveInfo>& primitiveInfo, int start, int end, const BoundingBox& bounds, int dim, BucketInfo* buckets, const int NUM_BUCKETS=NUM_BUCKETS);
+    void computeBuckets(const std::vector<BVHPrimitiveInfo>& primitiveInfo, int start, int end, const BoundingBox& bounds, int dim, BucketInfo* buckets, const int NUM_BUCKETS=DEF_NUM_BUCKETS);
 
-    Real computeBucketCost(const BucketInfo buckets[], int splitBucket, const BoundingBox& bounds, const int NUM_BUCKETS=NUM_BUCKETS);
+    Real computeBucketCost(const BucketInfo buckets[], int splitBucket, const BoundingBox& bounds, const int NUM_BUCKETS=DEF_NUM_BUCKETS);
 
-    int partitionPrimitives(std::vector<BVHPrimitiveInfo>& primitiveInfo, int start, int end, const BoundingBox& bounds, int dim, int minCostSplitBucket, const int NUM_BUCKETS=NUM_BUCKETS);
+    int partitionPrimitives(std::vector<BVHPrimitiveInfo>& primitiveInfo, int start, int end, const BoundingBox& bounds, int dim, int minCostSplitBucket, const int NUM_BUCKETS=DEF_NUM_BUCKETS);
 
 } // namespace cu_utils
