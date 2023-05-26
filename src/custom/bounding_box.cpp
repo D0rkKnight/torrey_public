@@ -130,17 +130,17 @@ BVHNode BVHNode::buildTree(std::vector<BVHPrimitiveInfo> &primInfo, int start, i
     int mid = start + (end - start) / 2;
 
     // Perform SAH
-    BucketInfo buckets[NUM_BUCKETS];
+    BucketInfo buckets[DEF_NUM_BUCKETS];
     computeBuckets(primInfo, start, end, root.box, longestAxis, buckets);
 
-    Real cost[NUM_BUCKETS - 1];
-    for (int i = 0; i < NUM_BUCKETS - 1; i++) {
+    Real cost[DEF_NUM_BUCKETS - 1];
+    for (int i = 0; i < DEF_NUM_BUCKETS - 1; i++) {
         cost[i] = computeBucketCost(buckets, i, root.box);
     }
 
     // If everything fills into only 1 bucket, split midwise
     int populatedBuckets = 0;
-    for (int i = 0; i < NUM_BUCKETS - 1; i++) {
+    for (int i = 0; i < DEF_NUM_BUCKETS - 1; i++) {
         if (buckets[i].count > 0) {
             populatedBuckets++;
         }
@@ -162,7 +162,7 @@ BVHNode BVHNode::buildTree(std::vector<BVHPrimitiveInfo> &primInfo, int start, i
 
     Real minCost = cost[0];
     int minCostSplitBucket = 0;
-    for (int i = 1; i < NUM_BUCKETS - 1; i++) {
+    for (int i = 1; i < DEF_NUM_BUCKETS - 1; i++) {
         if (cost[i] < minCost) {
             minCost = cost[i];
             minCostSplitBucket = i;

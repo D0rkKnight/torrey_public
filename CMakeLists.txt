@@ -110,8 +110,5 @@ target_link_libraries(
 target_link_libraries(gtests Threads::Threads)
 target_link_libraries(gtests torrey_lib)
 
-# Turn off optimizations for testing
-# set_target_properties(gtests PROPERTIES COMPILE_FLAGS -O0)
-
 include(GoogleTest)
 gtest_discover_tests(gtests)
