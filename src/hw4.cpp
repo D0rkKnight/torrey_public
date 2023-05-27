@@ -24,10 +24,6 @@ Image3 hw_4_1(const std::vector<std::string> &params) {
     cu_utils::Renderer renderer(cu_utils::Mode::MATTE_REFLECT);
     renderer.maxDepth = max_depth;
 
-    // Make it faster for dev
-    renderer.maxDepth = 10;
-    scene.samples_per_pixel = 16;
-
     return renderer.render(scene);
 }
 
@@ -48,9 +44,10 @@ Image3 hw_4_2(const std::vector<std::string> &params) {
     }
 
     ParsedScene scene = parse_scene(filename);
-    UNUSED(scene);
+    cu_utils::Renderer renderer(cu_utils::Mode::MATTE_REFLECT);
+    renderer.maxDepth = max_depth;
 
-    return Image3(0, 0);
+    return renderer.render(scene);
 }
 
 Image3 hw_4_3(const std::vector<std::string> &params) {
@@ -70,7 +67,8 @@ Image3 hw_4_3(const std::vector<std::string> &params) {
     }
 
     ParsedScene scene = parse_scene(filename);
-    UNUSED(scene);
+    cu_utils::Renderer renderer(cu_utils::Mode::MATTE_REFLECT);
+    renderer.maxDepth = max_depth;
 
-    return Image3(0, 0);
+    return renderer.render(scene);
 }

@@ -101,8 +101,6 @@ bool PhongMaterial::scatter(const Ray &ray, const RayHit &hit, Vector3 &alb, Ray
     scattered = Ray(ray * hit.t, direction);
     alb = getTexColor(hit.u, hit.v);
 
-    // Real sinTheta = sqrt(1 - cosTheta * cosTheta);
-
     pdf = scattering_pdf(ray, hit, scattered);
     return true;
 }

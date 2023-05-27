@@ -36,6 +36,9 @@ namespace cu_utils
         // Will be pointy in BRDFs
         virtual Real scattering_pdf(const Ray &ray, const RayHit &hit, const Ray &scattered) const { return 0; };
 
+        // Given wi, hit, and wo, generate the unweighted light contribution
+        virtual Real light_contribution(const Ray &ray_in, const RayHit &hit, const Ray &ray_out) const { return 0; };
+
         // Locks in values for child materials
         virtual void finish() {};
     };
@@ -47,6 +50,8 @@ namespace cu_utils
 
         bool scatter(const Ray &ray, const RayHit &hit, Vector3 &albedo, Ray &scattered, Real &pdf, pcg32_state &rng) const;
         Real scattering_pdf(const Ray &ray, const RayHit &hit, const Ray &scattered) const;
+        Real light_contribution(const Ray &ray_in, const RayHit &hit, const Ray &ray_out) const override;
+
     };
 
     struct MirrorMaterial : public Material
@@ -63,6 +68,10 @@ namespace cu_utils
         PlasticMaterial();
         Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const override;
         void finish() override;
+
+        bool scatter(const Ray &ray, const RayHit &hit, Vector3 &albedo, Ray &scattered, Real &pdf, pcg32_state &rng) const;
+        Real scattering_pdf(const Ray &ray, const RayHit &hit, const Ray &scattered) const;
+        Real light_contribution(const Ray &ray_in, const RayHit &hit, const Ray &ray_out) const override;
     };
 
     struct PhongMaterial : public Material
