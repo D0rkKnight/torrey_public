@@ -9,7 +9,7 @@
 		<float name="fov" value="90"/>
 
 		<sampler type="independent">
-			<integer name="sampleCount" value="1"/>
+			<integer name="sampleCount" value="512"/>
 		</sampler>
 
 		<film type="hdrfilm">
@@ -18,14 +18,30 @@
 		</film>
 	</sensor>
 
-	<bsdf type="diffuse" id="white">
-		<rgb name="reflectance" value="0.884774, 0.699933, 0.666224"/>
+	<bsdf type="blinn_microfacet" id="mat1">
+		<rgb name="reflectance" value="0.7, 0.5, 0.2"/>
+		<float name="exponent" value="4"/>
 	</bsdf>
 
-	<emitter type="point">
+	<bsdf type="blinn_microfacet" id="mat2">
+		<rgb name="reflectance" value="0.2, 0.5, 0.7"/>
+		<float name="exponent" value="32"/>
+	</bsdf>
+
+	<bsdf type="blinn_microfacet" id="mat3">
+		<rgb name="reflectance" value="0.2, 0.7, 0.5"/>
+		<float name="exponent" value="160"/>
+	</bsdf>
+
+	<bsdf type="blinn_microfacet" id="mat4">
+		<rgb name="reflectance" value="0.5, 0.7, 0.2"/>
+		<float name="exponent" value="400"/>
+	</bsdf>
+
+	<!-- <emitter type="point">
         <rgb name="intensity" value="2000000, 1400000, 1000000"/>
         <point name="position" x="0" y="1000" z="0"/>
-	</emitter>
+	</emitter> -->
 
 	<emitter type="point">
         <rgb name="intensity" value="10, 7, 5"/>
@@ -40,7 +56,7 @@
 	<shape type="obj">
 		<string name="filename" value="char.obj"/>
 
-		<ref id="white"/>
+		<ref id="mat2"/>
 	</shape>
 
 	<shape type="sphere">
@@ -52,6 +68,6 @@
 	</shape>
 
 	<background>
-		<rgb name="radiance" value="0.5, 0.5, 0.5"/>
+		<rgb name="radiance" value="0.2, 0.2, 0.2"/>
 	</background>
 </scene>

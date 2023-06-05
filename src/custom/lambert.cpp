@@ -41,7 +41,11 @@ Vector3 cu_utils::matte(const Renderer *renderer, const Ray ray, const RayHit be
     int lightIndex, shapeIndex;
     Shape *emitter;
     int numAreaLights = scene.areaLights.size();
+
+    if (PlasticMaterial *plastic = dynamic_cast<PlasticMaterial *>(material))
+        numAreaLights = 0;
     numAreaLights = 0;
+    
 
     if (numAreaLights > 0) {
         lightIndex = next_pcg32_real<Real>(rng) * scene.areaLights.size();
