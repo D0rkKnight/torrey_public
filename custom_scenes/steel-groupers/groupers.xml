@@ -4,7 +4,7 @@
 	<sensor type="perspective">
 		<string name="fovAxis" value="y"/>
 		<transform name="toWorld">
-			<lookAt origin="0, 2, 5" target="0, 2, 0" up="0, 1, 0"/>
+			<lookAt origin="0, -0.02, 0.07" target="0.015, 0, 0.012" up="0, 1, 0"/>
 		</transform>
 		<float name="fov" value="90"/>
 
@@ -18,53 +18,22 @@
 		</film>
 	</sensor>
 
-	<bsdf type="blinn_microfacet" id="mat1">
-		<rgb name="reflectance" value="0.7, 0.5, 0.2"/>
-		<float name="exponent" value="4"/>
-	</bsdf>
-
 	<bsdf type="blinn_microfacet" id="mat2">
-		<rgb name="reflectance" value="0.2, 0.5, 0.7"/>
+		<texture type="bitmap" name="reflectance">
+			<string name="filename" value="textures/Fish_Color.jpg"/>
+		</texture>
 		<float name="exponent" value="32"/>
 	</bsdf>
-
-	<bsdf type="blinn_microfacet" id="mat3">
-		<rgb name="reflectance" value="0.2, 0.7, 0.5"/>
-		<float name="exponent" value="160"/>
-	</bsdf>
-
-	<bsdf type="blinn_microfacet" id="mat4">
-		<rgb name="reflectance" value="0.5, 0.7, 0.2"/>
-		<float name="exponent" value="400"/>
-	</bsdf>
-
-	<!-- <emitter type="point">
-        <rgb name="intensity" value="2000000, 1400000, 1000000"/>
-        <point name="position" x="0" y="1000" z="0"/>
-	</emitter> -->
 
 	<emitter type="point">
         <rgb name="intensity" value="10, 7, 5"/>
         <point name="position" x="0" y="3" z="4"/>
 	</emitter>
 
-	<!-- <shape type="ply">
-		<string name="filename" value="char.ply"/>
-
-		<ref id="white"/>
-	</shape> -->
 	<shape type="obj">
 		<string name="filename" value="model.obj"/>
 
 		<ref id="mat2"/>
-	</shape>
-
-	<shape type="sphere">
-	    <point name="center" x="0" y="2" z="1"/>
-	    <float name="radius" value="0.3"/>
-		<emitter type="area">
-			<rgb name="radiance" value="40, 40, 40"/>
-		</emitter>
 	</shape>
 
 	<background>

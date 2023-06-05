@@ -7,8 +7,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(CMAKE_BUILD_TYPE RelWithDebInfo)
-# set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_BUILD_TYPE RelWithDebInfo)
+set(CMAKE_BUILD_TYPE Debug)
 
 if(MSVC)
 add_compile_options(/Wall)
@@ -86,6 +86,9 @@ target_link_libraries(torrey torrey_lib)
 # Build and link testing executable
 # Turn off optimizations for testing
 
+enable_testing()
+include(CTest)
+
 include(FetchContent)
 FetchContent_Declare(
   googletest
@@ -93,7 +96,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-# enable_testing()
 
 file(GLOB_RECURSE GTEST_SOURCES
     ${CMAKE_SOURCE_DIR}/src/tests/*.cpp)
