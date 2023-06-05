@@ -53,8 +53,8 @@
 
 		<ref id="white"/>
 	</shape> -->
-	<shape type="ply">
-		<string name="filename" value="model.ply"/>
+	<shape type="obj">
+		<string name="filename" value="model.obj"/>
 
 		<ref id="mat2"/>
 	</shape>
@@ -68,6 +68,6 @@
 	</shape>
 
 	<background>
-		<rgb name="radiance" value="0.2, 0.2, 0.2"/>
+		<rgb name="radiance" value="0.8, 0.8, 0.8"/>
 	</background>
 </scene>
