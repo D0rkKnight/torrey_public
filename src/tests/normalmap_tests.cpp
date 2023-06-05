@@ -1,14 +1,16 @@
 #include <gtest/gtest.h>
 #include <filesystem>
 #include "../vector.h"
+#include "../image.h"
+
 #include "../custom/ray.h"
 #include "../custom/bounding_box.h"
 #include "../custom/shapes.h"
 #include "../custom/utils.h"
 #include "../custom/sah.h"
-#include "../image.h"
 #include "../custom/scene.h"
 #include "../custom/renderer.h"
+#include "../custom/onb.h"
 
 using namespace cu_utils;
 
@@ -42,4 +44,24 @@ TEST(RenderTest, Render1) {
     Image3 out = renderer.render(scene);
 
     ASSERT_TRUE(true);
+}
+
+TEST(ONBTest, TransformNormalMap) {
+    // Define the normal and bitangent axes of the ONB
+    // Make sure it is a RHS
+    Vector3 normal(0.0f, 0.0f, 1.0f);
+    Vector3 tangent(0.0f, 1.0f, 0.0f);
+    Vector3 bitangent(-1.0f, 0.0f, 0.0f);
+
+    // Create the ONB object
+    // The basis isn't orthogonal at all but oh well
+    onb basis;
+    basis.axis[2] = normal;
+    basis.axis[0] = tangent;
+    basis.axis[1] = bitangent;
+
+    Vector3 normalMap(0.0f, 0.0f, 1.0f); 
+
+    Vector3 transformed = basis.local(normalMap);
+    ASSERT_TRUE(equals(transformed, Vector3(0.0f, 0.0f, 1.0f)));
 }
