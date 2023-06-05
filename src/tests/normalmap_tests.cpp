@@ -16,7 +16,7 @@ TEST(NormalMapTest, LoadNormalMap) {
 
     // Use absolute path
     fs::path workingDir = fs::current_path();
-    fs::path normalMapPath = fs::path("custom_scenes/steel-groupers/textures/Fish_NormalSmooth.png");
+    fs::path normalMapPath = fs::path("../custom_scenes/steel-groupers/textures/Fish_NormalSmooth.png");
     fs::path absolute = workingDir / normalMapPath;
 
     Image3 normalMap = imread3(absolute);
@@ -25,14 +25,14 @@ TEST(NormalMapTest, LoadNormalMap) {
     EXPECT_EQ(normalMap.height, 1024);
 
     // Write image3 to file
-    fs::path outPath = fs::path("out/tests/normal_confirm.png");
+    fs::path outPath = fs::path("../out/tests/normal_confirm.exr");
 
-    imwrite(workingDir / outPath, normalMap);
+    imwrite(outPath, normalMap);
 }
 
 TEST(RenderTest, Render1) {
     fs::path workingDir = fs::current_path();
-    fs::path scenePath = fs::path("custom_scenes/steel-groupers/groupers.xml");
+    fs::path scenePath = fs::path("../custom_scenes/steel-groupers/groupers.xml");
     ParsedScene scene = parse_scene(workingDir / scenePath);
     scene.samples_per_pixel = 5;
 
