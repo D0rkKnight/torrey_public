@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 #include "scene.h"
 #include "../vector.h"
 
@@ -229,7 +230,6 @@ void Scene::addTexture(ParsedImageTexture *image_texture)
 // TODO: Move this to the material src probably
 Vector3 Material::getTexColor(Real u, Real v) const
 {
-
     if (texMeta == nullptr)
         return flatColor;
 
@@ -265,14 +265,26 @@ Vector3 Material::getTexColor(Real u, Real v) const
 
 void Material::loadTexture(ParsedImageTexture *image_texture)
 {
-
     // Load the image texture and create a texture object
     // ...
 
     // Clone to heapsince it's getting deallocated later or something
     texMeta = new ParsedImageTexture(*image_texture);
-
     scene->addTexture(image_texture);
+
+    // // Also try to find a normal map
+    // std::string normal_filename = image_texture->filename;
+    // size_t dot_pos = normal_filename.find_last_of(".");
+    // if (dot_pos != std::string::npos) {
+    //     normal_filename.insert(dot_pos, "_normal");
+    //     std::ifstream normal_file(normal_filename);
+    //     if (normal_file.good()) {
+    //         // Load the normal map and create a texture object
+    //         ParsedImageTexture *normal_texture = new ParsedImageTexture(normal_filename);
+    //         scene->addTexture(normal_texture);
+    //         material->normal_texture = normal_texture;
+    //     }
+    // }
 }
 
 void cu_utils::assignParsedColor(Material *material, ParsedColor color)

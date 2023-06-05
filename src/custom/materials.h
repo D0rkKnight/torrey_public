@@ -20,6 +20,7 @@ namespace cu_utils
 
         // Can have a backing image texture.
         ParsedImageTexture *texMeta;
+        ParsedImageTexture *normalMeta;
 
         Material();
 

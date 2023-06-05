@@ -64,4 +64,31 @@ TEST(ONBTest, TransformNormalMap) {
 
     Vector3 transformed = basis.local(normalMap);
     ASSERT_TRUE(equals(transformed, Vector3(0.0f, 0.0f, 1.0f)));
+
+    // Check for some other orientations
+    normalMap = Vector3(0.0f, 1.0f, 0.0f);
+    transformed = basis.local(normalMap);
+    ASSERT_TRUE(equals(transformed, Vector3(-1.0f, 0.0f, 0.0f)));
+
+    normalMap = Vector3(1.0f, 0.0f, 0.0f);
+    transformed = basis.local(normalMap);
+    ASSERT_TRUE(equals(transformed, Vector3(0.0f, 1.0f, 0.0f)));
+}
+
+TEST(NormalMapTest, ScenePairedImport) {
+    Scene scene = Scene::defaultScene();
+
+    ParsedImageTexture *texMeta = new ParsedImageTexture();
+    fs::path rel = fs::path("../custom_scenes/steel-groupers/textures/Fish_Color.jpg");
+    fs::path normRel = fs::path("../custom_scenes/steel-groupers/textures/Fish_Color_NormalSmooth.png");
+    fs::path wd = fs::current_path();
+
+    texMeta->filename = wd/rel;
+
+    // Check that the file exists
+    ASSERT_TRUE(fs::exists(wd/normRel));
+
+    // Perform a path splice
+
+
 }

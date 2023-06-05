@@ -5,6 +5,7 @@
 #include "ray.h"
 #include "pcg.h"
 #include <cstdlib>
+#include <filesystem>
 
 namespace cu_utils
 {
@@ -106,4 +107,6 @@ namespace cu_utils
     };
 
     Real testingDot(const Vector3& a, const Vector3& b);
+
+    fs::path variantFileFromExtension(const fs::path& path, const std::string& extension);
 }
