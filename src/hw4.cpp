@@ -24,8 +24,8 @@ Image3 hw_4_1(const std::vector<std::string> &params) {
     cu_utils::Renderer renderer(cu_utils::Mode::MATTE_REFLECT);
     renderer.maxDepth = max_depth;
 
-    scene.samples_per_pixel = 5;
-    renderer.maxDepth = 10;
+    // scene.samples_per_pixel = 5;
+    // renderer.maxDepth = 10;
 
     return renderer.render(scene);
 }

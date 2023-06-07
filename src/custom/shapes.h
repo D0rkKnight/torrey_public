@@ -11,11 +11,13 @@
 namespace cu_utils
 {
     class AreaLight;
+    struct Scene;
 
     struct Shape
     {
     public:
         int material_id;
+        const Scene *scene; // The scene that this shape is in
         const AreaLight *areaLight; // The area light that this shape is
 
         virtual RayHit checkHit(const Ray &ray, const Real mint, const Real maxt) const = 0;

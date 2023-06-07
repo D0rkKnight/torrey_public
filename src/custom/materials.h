@@ -25,6 +25,8 @@ namespace cu_utils
         Material();
 
         Vector3 getTexColor(Real u, Real v) const;
+        Vector3 getNormalOffset(Real u, Real v) const;
+
         void loadTexture(ParsedImageTexture *texMeta);
 
         virtual Vector3 shadePoint(const Renderer *renderer, const Ray ray, const RayHit bestHit, const Scene &scene, const BVHNode &objRoot, pcg32_state &rng, int depth) const;

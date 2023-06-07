@@ -54,18 +54,7 @@ Scene::Scene(const ParsedScene &parsed)
         if (auto sphere = std::get_if<ParsedSphere>(&parsedShape))
         {
             Shape *shape = new Sphere(sphere->position, sphere->radius, matID);
-
-            // Write in area light
-            // TODO: Extract to function
-            // const int areaLightID = get_area_light_id(parsedShape);
-            // if (areaLightID >= 0)
-            // {
-            //     // This is an area light
-            //     const ParsedLight light = parsed.lights[areaLightID];
-            //     auto *areaLight = std::get_if<ParsedDiffuseAreaLight>(&light);
-
-            //     shape->areaLight = areaLight;
-            // }
+            shape->scene = this;
 
             shapes.push_back(shape);
             idGrp.push_back(shape);
@@ -101,18 +90,7 @@ Scene::Scene(const ParsedScene &parsed)
                     tri->n2 = n2;
                 }
 
-                // TODO: Extract to function
-                // TODO: Need to store duplicates in some area light cache.
-                // TODO: Area light cache should have wrapper object that holds a list of subscribed shapes.
-                // const int areaLightID = get_area_light_id(parsedShape);
-                // if (areaLightID >= 0)
-                // {
-                //     // This is an area light
-                //     const ParsedLight light = parsed.lights[areaLightID];
-                //     auto *areaLight = std::get_if<ParsedDiffuseAreaLight>(&light);
-
-                //     tri->areaLight = areaLight;
-                // }
+                tri->scene = this;
 
                 shapes.push_back(tri);
                 idGrp.push_back(tri);
@@ -263,6 +241,41 @@ Vector3 Material::getTexColor(Real u, Real v) const
     return c;
 }
 
+Vector3 Material::getNormalOffset(Real u, Real v) const {
+    if (normalMeta == nullptr)
+        return Vector3{0, 0, 1};
+
+    // Get the image texture
+    Image3 *image = &(scene->textures[normalMeta->filename]);
+
+    // Get the pixel coordinates
+    Real rx = (image->width * modulo(texMeta->uscale * u + texMeta->uoffset, 1.0));
+    Real ry = (image->height * modulo(texMeta->vscale * v + texMeta->voffset, 1.0));
+
+    // Bilinear interpolation
+    int x = (int)rx;
+    int y = (int)ry;
+    int nx = (x + 1) % image->width;
+    int ny = (y + 1) % image->height;
+
+    // Get the four surrounding pixels
+    Vector3 c00 = (*image)(x, y);
+    Vector3 c01 = (*image)(x, ny);
+    Vector3 c10 = (*image)(nx, y);
+    Vector3 c11 = (*image)(nx, ny);
+
+    // Interpolate
+    Real dx = rx - x;
+    Real dy = ry - y;
+    Vector3 c0 = c00 * (1 - dx) + c10 * dx;
+    Vector3 c1 = c01 * (1 - dx) + c11 * dx;
+    Vector3 c = c0 * (1 - dy) + c1 * dy;
+
+    // Get the pixel color
+    return c;
+}
+
+
 void Material::loadTexture(ParsedImageTexture *image_texture)
 {
     // Load the image texture and create a texture object
@@ -272,19 +285,25 @@ void Material::loadTexture(ParsedImageTexture *image_texture)
     texMeta = new ParsedImageTexture(*image_texture);
     scene->addTexture(image_texture);
 
-    // // Also try to find a normal map
-    // std::string normal_filename = image_texture->filename;
-    // size_t dot_pos = normal_filename.find_last_of(".");
-    // if (dot_pos != std::string::npos) {
-    //     normal_filename.insert(dot_pos, "_normal");
-    //     std::ifstream normal_file(normal_filename);
-    //     if (normal_file.good()) {
-    //         // Load the normal map and create a texture object
-    //         ParsedImageTexture *normal_texture = new ParsedImageTexture(normal_filename);
-    //         scene->addTexture(normal_texture);
-    //         material->normal_texture = normal_texture;
-    //     }
-    // }
+    // Also try to find a normal map
+    std::string normal_filename = image_texture->filename.string();
+    size_t dot_pos = normal_filename.find_last_of(".");
+    if (dot_pos != std::string::npos) {
+        // normal_filename.insert(dot_pos, "_normal");
+
+        // Change from .* to .png
+        normal_filename.replace(normal_filename.begin() + dot_pos, normal_filename.end(), "_normal.png");
+
+        if (fs::exists(normal_filename)) {
+            // Load the normal map and create a texture object
+            ParsedImageTexture *normal_texture = new ParsedImageTexture();
+            normal_texture->filename = normal_filename;
+
+            scene->addTexture(normal_texture);
+
+            normalMeta = normal_texture;
+        }
+    }
 }
 
 void cu_utils::assignParsedColor(Material *material, ParsedColor color)

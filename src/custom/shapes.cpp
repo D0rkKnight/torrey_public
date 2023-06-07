@@ -1,9 +1,12 @@
 #include "shapes.h"
 #include "utils.h"
 #include "pcg.h"
+#include "materials.h"
+#include "scene.h"
 #include <iostream>
 #include <cmath>
 #include <vector.h>
+#include "onb.h"
 
 using namespace cu_utils;
 // using namespace std;
@@ -147,6 +150,25 @@ RayHit Triangle::checkHit(const Ray &ray, const Real mint, const Real maxt) cons
 
     // n is the weighted average of the triangle's normals
     Vector3 n = normalize(n0 + u * (n1 - n0) + v * (n2 - n0));
+
+    // Get material
+    int material_id = this->material_id;
+    Material *mat = scene->materials[material_id];
+
+    Vector3 normMapVal = mat->getNormalOffset(u, v);
+    onb basis = onb();
+    basis.build_from_w(n);
+
+    // Map x and y to [-1, 1]
+    normMapVal.x = normMapVal.x * 2 - 1;
+    normMapVal.y = normMapVal.y * 2 - 1;
+
+    n = normalize(basis.local(normMapVal));
+
+
+    // basis.axis[0] = normalize(cross(n, normMapVal)
+    // basis.axis[1] = normalize(cross(n, normMapVal));
+    // basis.axis[2] = n;
 
     bool backface = dot(n, ray.dir) > 0;
     n = backface ? -n : n;
