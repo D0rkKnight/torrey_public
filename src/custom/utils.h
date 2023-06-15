@@ -4,6 +4,7 @@
 #include "../matrix.h"
 #include "ray.h"
 #include "pcg.h"
+#include "../3rdparty/stb_image.h"
 #include <cstdlib>
 #include <filesystem>
 
@@ -109,4 +110,6 @@ namespace cu_utils
     Real testingDot(const Vector3& a, const Vector3& b);
 
     fs::path variantFileFromExtension(const fs::path& path, const std::string& extension);
+
+    Image3 loadUnbiasedImage(const fs::path& path);
 }

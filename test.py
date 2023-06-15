@@ -4,6 +4,8 @@ def check_image(image_path):
     # Load the image
     image = Image.open(image_path)
     pixels = image.load()
+    
+    print(pixels[320, 420])
 
     # Iterate over each pixel
     width, height = image.size

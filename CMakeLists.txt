@@ -18,6 +18,12 @@ endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
+# Find X11 package
+find_package(X11 REQUIRED)
+
+# Add include directories for X11
+include_directories(${X11_INCLUDE_DIR})
+
 # Set custom files as src as well
 file(GLOB_RECURSE CUSTOM_SRCS ${CMAKE_SOURCE_DIR}/src/custom/*.cpp)
 
@@ -75,6 +81,7 @@ find_package(Threads REQUIRED)
 target_link_libraries(torrey Threads::Threads)
 
 target_link_libraries(torrey torrey_lib)
+target_link_libraries(torrey ${X11_LIBRARIES})
 
 # # Nuke them warnings
 # if(MSVC)
@@ -111,6 +118,7 @@ target_link_libraries(
 
 target_link_libraries(gtests Threads::Threads)
 target_link_libraries(gtests torrey_lib)
+target_link_libraries(gtests ${X11_LIBRARIES})
 
 include(GoogleTest)
 gtest_discover_tests(gtests)

@@ -2,7 +2,8 @@
 #include <filesystem>
 #include "../vector.h"
 #include "../image.h"
-#include <png++/png.hpp>
+#include "../3rdparty/stb_image.h"
+
 
 #include "../custom/ray.h"
 #include "../custom/bounding_box.h"
@@ -95,11 +96,14 @@ TEST(NormalMapTest, ScenePairedImport) {
 }
 
 TEST(NormalMapTest, ColorCheckTest) {
-    fs::path rel = fs::path("../custom_scenes/steel-groupers/textures/Fish_Color.jpg");
     fs::path normRel = fs::path("../custom_scenes/steel-groupers/textures/Fish_Color_normal.png");
     fs::path wd = fs::current_path();
 
     Image3 tex = imread3(wd/normRel);
+
+    // Read what's at 320,420
+    Vector3 pixel = tex(320,420);
+    std::cout << pixel << std::endl;
 
     // Check that every pixel has b >= 0.5
     for (Vector3 pixel : tex.data) {
@@ -107,7 +111,18 @@ TEST(NormalMapTest, ColorCheckTest) {
     }
 }
 
-TEST(NormalMapTest, PNGPPTest) {
-    png::image< png::rgb_pixel > image("input.png");
-    image.write("output.png");
+TEST(NormalMapTest, STBILoadTest) {
+    fs::path rel = fs::path("../custom_scenes/steel-groupers/textures/Fish_Color.jpg");
+    fs::path normRel = fs::path("../custom_scenes/steel-groupers/textures/Fish_Color_normal.png");
+    fs::path wd = fs::current_path();
+
+    string path = (wd/normRel).string();
+    
+    Image3 image = loadUnbiasedImage(path);
+
+    // Check that every pixel has b >= 0.5
+    for (Vector3 pixel : image.data) {
+        ASSERT_GE(pixel.z, 0.5);
+        ASSERT_LE(pixel.z, 1.0);
+    }
 }
