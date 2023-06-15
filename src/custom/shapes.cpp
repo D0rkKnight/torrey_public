@@ -163,19 +163,20 @@ RayHit Triangle::checkHit(const Ray &ray, const Real mint, const Real maxt) cons
 
     Real uvf = 1.0 / (duv1.x * duv2.y - duv2.x * duv1.y);
 
-    Vector3 tan = normalize(uvf * (duv2.y * (v1 - v0) - duv1.y * (v2 - v0)));
-    Vector3 bitan = normalize(uvf * (-duv2.x * (v1 - v0) + duv1.x * (v2 - v0)));
+    Vector3 tan = normalize(uvf * (duv2.y * e1 - duv1.y * e2));
+    Vector3 bitan = normalize(uvf * (-duv2.x * e1 + duv1.x * e2));
     
     // Build orthonormal basis from normal
     onb basis = onb();
+    basis.axis[0] = tan;
+    basis.axis[1] = bitan;
     basis.axis[2] = n;
-    basis.axis[0] = normalize(cross(tan, n));
-    basis.axis[1] = normalize(cross(basis.axis[0], n)); // No clue if this is right or not but oh well
 
     // Map x and y to [-1, 1]
-    normMapVal.x = normMapVal.x * 2 - 1;
-    normMapVal.y = normMapVal.y * 2 - 1;
+    normMapVal.x = (normMapVal.x - 0.5) * 2;
+    normMapVal.y = (normMapVal.y - 0.5) * 2;
 
+    // normMapVal = Vector3{0, 0, 1};
     n = normalize(basis.local(normMapVal));
 
 
