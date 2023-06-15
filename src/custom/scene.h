@@ -45,6 +45,8 @@ namespace cu_utils
 
         std::map<std::filesystem::path, Image3> textures;
 
+        Image3 skybox;
+
         Scene();
         Scene(const ParsedScene &parsedScene);
 

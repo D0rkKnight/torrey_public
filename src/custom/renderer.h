@@ -60,6 +60,12 @@ namespace cu_utils
 
             Image3 img(parsed.camera.width, parsed.camera.height);
             Scene scene(parsed);
+
+            // Retrieve skybox
+            // Just hardcode it, I don't care anymore
+            scene.skybox = imread3("../custom_scenes/steel-groupers/textures/skybox.png");
+            std::cout << "Loaded skybox" << std::endl;
+
             render(img, scene, seed);
 
             return img;
@@ -151,6 +157,14 @@ namespace cu_utils
             auto bestHit = castRay(ray, scene.shapes, objRoot);
 
             Vector3 color = bgCol;
+
+            // Sample the skybox if we hit nothing (this is dangerous, but oh well.)
+            if (bestHit.hit == 0)
+            {
+                color = sampleSkybox(ray.dir, scene.skybox);
+            }
+
+            else
             if (bestHit.hit > 0)
             {
                 // Just a default value
@@ -262,6 +276,58 @@ namespace cu_utils
             // std::cout << "Cull ratio: " << (Real)BBNode::boxesHit / (Real)BBNode::scansMade << std::endl;
 
             return bestHit;
+        }
+
+        // Sample the skybox given a ray and skybox texture
+        Vector3 sampleSkybox(const Vector3& ray, const Image3& skybox) const {
+            float u, v;
+            float absRx = std::abs(ray.x);
+            float absRy = std::abs(ray.y);
+            float absRz = std::abs(ray.z);
+
+            int faceIndex;
+            if (absRx >= absRy && absRx >= absRz) {
+                // Right or left face
+                faceIndex = (ray.x > 0) ? 0 : 1;
+                u = -ray.z / absRx;
+                v = -ray.y / absRx;
+            } else if (absRy >= absRx && absRy >= absRz) {
+                // Up or down face
+                faceIndex = (ray.y > 0) ? 2 : 3;
+                u = ray.x / absRy;
+                v = ray.z / absRy;
+            } else {
+                // Front or back face
+                faceIndex = (ray.z > 0) ? 4 : 5;
+                u = -ray.x / absRz;
+                v = -ray.y / absRz;
+            }
+
+            int faceOffset = 0;
+            switch(faceIndex) {
+                case 0: faceOffset = 7; break;
+                case 1: faceOffset = 5; break;
+                case 2: faceOffset = 2; break;
+                case 3: faceOffset = 10; break;
+                case 4: faceOffset = 6; break;
+                case 5: faceOffset = 4; break;
+            }
+
+            // Calculate the pixel coordinates in the selected face of the skybox texture
+            int faceWidth = skybox.width / 4; // Assuming the skybox has a cross shape with equal-sized faces
+            int faceHeight = skybox.height / 3;
+
+            int pixelX = static_cast<int>((u + 1.0f) * (faceWidth - 1) / 2.0f + faceOffset % 4 * faceWidth);
+            int pixelY = static_cast<int>((v + 1.0f) * (faceHeight - 1) / 2.0f + faceOffset / 4 * faceHeight);
+
+            // Calculate the starting index of the selected face in the skybox texture
+            // int faceStartIndex = faceIndex * faceWidth * faceHeight;
+
+            // Access the corresponding pixel in the skybox texture
+            // int pixelIndex = faceStartIndex + (pixelY * faceWidth + pixelX);
+            Vector3 col = skybox(pixelX, pixelY);
+
+            return col;
         }
     };
 
