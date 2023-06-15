@@ -162,6 +162,9 @@ namespace cu_utils
             if (bestHit.hit == 0)
             {
                 color = sampleSkybox(ray.dir, scene.skybox);
+
+                if (depth < maxDepth) // This is a reflect ray, lets us light the fish up more :3
+                    color = color + Vector3{0.2, 0.2, 0.5};
             }
 
             else
