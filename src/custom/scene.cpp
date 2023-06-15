@@ -243,7 +243,7 @@ Vector3 Material::getTexColor(Real u, Real v) const
 
 Vector3 Material::getNormalOffset(Real u, Real v) const {
     if (normalMeta == nullptr)
-        return Vector3{0, 0, 1};
+        return Vector3{0.5, 0.5, 1.0};
 
     // Get the image texture
     Image3 *image = &(scene->textures[normalMeta->filename]);

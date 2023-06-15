@@ -175,14 +175,17 @@ RayHit Triangle::checkHit(const Ray &ray, const Real mint, const Real maxt) cons
     // Map x and y to [-1, 1]
     normMapVal.x = (normMapVal.x - 0.5) * 2;
     normMapVal.y = (normMapVal.y - 0.5) * 2;
+    normMapVal.z = (normMapVal.z - 0.5) * 2;
+
+    // if (normMapVal.z < 0)
+    //     std::cout << "Negative z value: " << normMapVal.z << std::endl;
+    
+    
+    if (normMapVal.z > 1)
+        std::cout << "overcapped z value: " << normMapVal.z << std::endl;
 
     // normMapVal = Vector3{0, 0, 1};
     n = normalize(basis.local(normMapVal));
-
-
-    // basis.axis[0] = normalize(cross(n, normMapVal)
-    // basis.axis[1] = normalize(cross(n, normMapVal));
-    // basis.axis[2] = n;
 
     bool backface = dot(n, ray.dir) > 0;
     n = backface ? -n : n;

@@ -92,3 +92,16 @@ TEST(NormalMapTest, ScenePairedImport) {
 
 
 }
+
+TEST(NormalMapTest, ColorCheckTest) {
+    fs::path rel = fs::path("../custom_scenes/steel-groupers/textures/Fish_Color.jpg");
+    fs::path normRel = fs::path("../custom_scenes/steel-groupers/textures/Fish_Color_normal.png");
+    fs::path wd = fs::current_path();
+
+    Image3 tex = imread3(wd/normRel);
+
+    // Check that every pixel has b >= 0.5
+    for (Vector3 pixel : tex.data) {
+        ASSERT_GE(pixel.z, 0.5);
+    }
+}
