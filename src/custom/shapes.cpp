@@ -156,8 +156,21 @@ RayHit Triangle::checkHit(const Ray &ray, const Real mint, const Real maxt) cons
     Material *mat = scene->materials[material_id];
 
     Vector3 normMapVal = mat->getNormalOffset(u, v);
+
+    // Build orthonormal basis from uv
+    Vector2 duv1 = uv1 - uv0;
+    Vector2 duv2 = uv2 - uv0;
+
+    Real uvf = 1.0 / (duv1.x * duv2.y - duv2.x * duv1.y);
+
+    Vector3 tan = normalize(uvf * (duv2.y * (v1 - v0) - duv1.y * (v2 - v0)));
+    Vector3 bitan = normalize(uvf * (-duv2.x * (v1 - v0) + duv1.x * (v2 - v0)));
+    
+    // Build orthonormal basis from normal
     onb basis = onb();
-    basis.build_from_w(n);
+    basis.axis[2] = n;
+    basis.axis[0] = normalize(cross(tan, n));
+    basis.axis[1] = normalize(cross(basis.axis[0], n)); // No clue if this is right or not but oh well
 
     // Map x and y to [-1, 1]
     normMapVal.x = normMapVal.x * 2 - 1;
