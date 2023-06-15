@@ -103,7 +103,13 @@ Vector3 cu_utils::MicrofacetMaterial::shadePoint(const Renderer *renderer, const
     // if (coeff.x > 1 || coeff.y > 1 || coeff.z > 1)
     //     std::cout << "Coeff greater than 1: " << coeff << std::endl;
 
-    return emitted
+    // Get texture emission as well
+    Vector3 texEmit = Vector3{0, 0, 0};
+    if (emissiveMeta != nullptr) {
+        texEmit = getEmission(bestHit.u, bestHit.v);
+    }
+
+    return emitted + texEmit
          + coeff * renderer->getPixelColor(scattered, scene, objRoot, rng, depth - 1);
 }
 

@@ -255,8 +255,42 @@ Vector3 Material::getNormalOffset(Real u, Real v) const {
     Image3 *image = &(scene->textures[normalMeta->filename]);
 
     // Get the pixel coordinates
-    Real rx = (image->width * modulo(texMeta->uscale * u + texMeta->uoffset, 1.0));
-    Real ry = (image->height * modulo(texMeta->vscale * v + texMeta->voffset, 1.0));
+    Real rx = (image->width * modulo(normalMeta->uscale * u + normalMeta->uoffset, 1.0));
+    Real ry = (image->height * modulo(normalMeta->vscale * v + normalMeta->voffset, 1.0));
+
+    // Bilinear interpolation
+    int x = (int)rx;
+    int y = (int)ry;
+    int nx = (x + 1) % image->width;
+    int ny = (y + 1) % image->height;
+
+    // Get the four surrounding pixels
+    Vector3 c00 = (*image)(x, y);
+    Vector3 c01 = (*image)(x, ny);
+    Vector3 c10 = (*image)(nx, y);
+    Vector3 c11 = (*image)(nx, ny);
+
+    // Interpolate
+    Real dx = rx - x;
+    Real dy = ry - y;
+    Vector3 c0 = c00 * (1 - dx) + c10 * dx;
+    Vector3 c1 = c01 * (1 - dx) + c11 * dx;
+    Vector3 c = c0 * (1 - dy) + c1 * dy;
+
+    // Get the pixel color
+    return c;
+}
+
+Vector3 Material::getEmission(Real u, Real v) const {
+    // if (normalMeta == nullptr)
+    //     return Vector3{0.5, 0.5, 1.0};
+
+    // Get the image texture
+    Image3 *image = &(scene->textures[emissiveMeta->filename]);
+
+    // Get the pixel coordinates
+    Real rx = (image->width * modulo(emissiveMeta->uscale * u + emissiveMeta->uoffset, 1.0));
+    Real ry = (image->height * modulo(emissiveMeta->vscale * v + emissiveMeta->voffset, 1.0));
 
     // Bilinear interpolation
     int x = (int)rx;
@@ -309,6 +343,18 @@ void Material::loadTexture(ParsedImageTexture *image_texture)
 
             normalMeta = normal_texture;
         }
+
+        // Just copy it whatever
+        std::string em_fname = image_texture->filename.string();
+        normal_filename.replace(normal_filename.begin() + dot_pos, normal_filename.end(), "_emissive.jpg");
+        
+        // Load the normal map and create a texture object
+        ParsedImageTexture *em_tex = new ParsedImageTexture();
+        em_tex->filename = normal_filename;
+
+        scene->addTexture(em_tex);
+
+        emissiveMeta = em_tex;
     }
 }
 

@@ -21,11 +21,13 @@ namespace cu_utils
         // Can have a backing image texture.
         ParsedImageTexture *texMeta;
         ParsedImageTexture *normalMeta;
+        ParsedImageTexture *emissiveMeta = nullptr;
 
         Material();
 
         Vector3 getTexColor(Real u, Real v) const;
         Vector3 getNormalOffset(Real u, Real v) const;
+        Vector3 getEmission(Real u, Real v) const;
 
         void loadTexture(ParsedImageTexture *texMeta);
 
