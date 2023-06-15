@@ -194,13 +194,19 @@ Scene::Scene(const ParsedScene &parsed)
     }
 }
 
-void Scene::addTexture(ParsedImageTexture *image_texture)
+void Scene::addTexture(ParsedImageTexture *image_texture, bool loadUnbiased)
 {
 
     // If the texture is not already loaded, load it
     if (textures.find(image_texture->filename) == textures.end())
     {
-        Image3 image = imread3(image_texture->filename);
+        Image3 image;
+
+        if (loadUnbiased)
+            image = loadUnbiasedImage(image_texture->filename);
+        else
+            image = imread3(image_texture->filename);
+
         textures[image_texture->filename] = image;
     }
 }
@@ -299,7 +305,7 @@ void Material::loadTexture(ParsedImageTexture *image_texture)
             ParsedImageTexture *normal_texture = new ParsedImageTexture();
             normal_texture->filename = normal_filename;
 
-            scene->addTexture(normal_texture);
+            scene->addTexture(normal_texture, true);
 
             normalMeta = normal_texture;
         }

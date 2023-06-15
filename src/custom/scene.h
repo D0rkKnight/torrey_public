@@ -50,7 +50,7 @@ namespace cu_utils
 
         static Scene defaultScene();
 
-        void addTexture(ParsedImageTexture *texMeta);
+        void addTexture(ParsedImageTexture *texMeta, bool loadUnbiased = false);
     };
 
     void assignParsedColor(Material *material, ParsedColor color);
