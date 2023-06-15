@@ -2,6 +2,7 @@
 #include <filesystem>
 #include "../vector.h"
 #include "../image.h"
+#include <png++/png.hpp>
 
 #include "../custom/ray.h"
 #include "../custom/bounding_box.h"
@@ -104,4 +105,9 @@ TEST(NormalMapTest, ColorCheckTest) {
     for (Vector3 pixel : tex.data) {
         ASSERT_GE(pixel.z, 0.5);
     }
+}
+
+TEST(NormalMapTest, PNGPPTest) {
+    png::image< png::rgb_pixel > image("input.png");
+    image.write("output.png");
 }
